@@ -1,0 +1,58 @@
+﻿@model Group17_iCAREAPP.Models.DocumentMetadata
+
+@{
+    ViewBag.Title = "Details";
+}
+
+<h2>Details</h2>
+
+<div>
+    <h4>DocumentMetadata</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.docName)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.docName)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.dateOfCreation)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.dateOfCreation)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.version)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.version)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.iCAREWorker.profession)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.iCAREWorker.profession)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.PatientRecord.name)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.PatientRecord.name)
+        </dd>
+
+    </dl>
+</div>
+<p>
+    @Html.ActionLink("Edit", "Edit", new { id = Model.docID }) |
+    @Html.ActionLink("Back to List", "Index")
+</p>

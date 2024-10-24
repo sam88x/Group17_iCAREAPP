@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.11.35327.3
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Group17_iCAREAPP", "Group17_iCAREAPP\Group17_iCAREAPP.csproj", "{DB20C641-B182-4010-81D7-5D973315927D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DB20C641-B182-4010-81D7-5D973315927D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DB20C641-B182-4010-81D7-5D973315927D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DB20C641-B182-4010-81D7-5D973315927D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DB20C641-B182-4010-81D7-5D973315927D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C83262C2-17AA-4AAA-85AD-9BAB072E476F}
+	EndGlobalSection
+EndGlobal
