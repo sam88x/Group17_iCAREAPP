@@ -1,0 +1,78 @@
+﻿
+@{
+    ViewBag.Title = "Create User";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container">
+    <h2>Create New User</h2>
+
+    @using (Html.BeginForm("CreateUser", "Admin", FormMethod.Post))
+    {
+        @Html.AntiForgeryToken()
+
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Full Name</label>
+                        <input type="text" name="name" class="form-control" required />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Username</label>
+                        <input type="text" name="userName" class="form-control" required />
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Password</label>
+                        <input type="password" name="password" class="form-control" required />
+                        <small class="text-muted">At least 8 characters with numbers and special characters</small>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Profession</label>
+                        <select name="profession" class="form-select" required>
+                            <option value="">Select Profession</option>
+                            <option value="Doctor">Doctor</option>
+                            <option value="Nurse">Nurse</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Account Expiry Date</label>
+                        <input type="date" name="accountExpiryDate" class="form-control" />
+                        <small class="text-muted">Leave blank for no expiration</small>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary">Create User</button>
+                    @Html.ActionLink("Back to List", "ManageUsers", null, new { @class = "btn btn-outline-secondary ms-2" })
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('form').on('submit', function (e) {
+                var password = $('input[name="password"]').val();
+                var isValid = password.length >= 8 &&
+                    /[A-Z]/.test(password) &&
+                    /[a-z]/.test(password) &&
+                    /[0-9]/.test(password) &&
+                    /[^A-Za-z0-9]/.test(password);
+
+                if (!isValid) {
+                    alert('Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character.');
+                    e.preventDefault();
+                }
+            });
+        });
+    </script>
+}

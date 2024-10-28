@@ -25,6 +25,13 @@ namespace Group17_iCAREAPP
             bundles.Add(new StyleBundle("~/Content/css").Include(
                       "~/Content/bootstrap.css",
                       "~/Content/site.css"));
+
+            bundles.Add(new ScriptBundle("~/bundles/datatables").Include(
+                      "~/Scripts/datatables/jquery.dataTables.min.js",
+                      "~/Scripts/datatables/dataTables.bootstrap.min.js"));
+
+            bundles.Add(new StyleBundle("~/Content/datatables").Include(
+                      "~/Content/datatables/css/dataTables.bootstrap.min.css"));
         }
     }
 }

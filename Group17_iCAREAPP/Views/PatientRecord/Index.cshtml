@@ -1,0 +1,92 @@
+﻿
+@model IEnumerable<Group17_iCAREAPP.Models.PatientRecord>
+
+@{
+    ViewBag.Title = "Patient Records";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Patient Records</h2>
+    <a href="@Url.Action("Create")" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Create New Patient Record
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <table class="table table-striped" id="patientRecordsTable">
+            <thead>
+                <tr>
+                    <th>
+                        @Html.DisplayNameFor(model => model.name)
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.dateOfBirth)
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.bloodGroup)
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.treatmentArea)
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.bedID)
+                    </th>
+                    <th>Last Modified By</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.name)
+                        </td>
+                        <td>
+                            @(item.dateOfBirth?.ToString("dd/MM/yyyy"))
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.bloodGroup)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.treatmentArea)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.bedID)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.iCAREWorker.ID)
+                        </td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <a href="@Url.Action("Edit", new { id = item.ID })" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-edit"></i> Edit
+                                </a>
+                                <a href="@Url.Action("Details", new { id = item.ID })" class="btn btn-sm btn-info">
+                                    <i class="fas fa-info-circle"></i> Details
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#patientRecordsTable').DataTable({
+                "ordering": true,
+                "paging": true,
+                "searching": true,
+                "responsive": true,
+                "language": {
+                    "search": "Filter records:"
+                }
+            });
+        });
+    </script>
+}

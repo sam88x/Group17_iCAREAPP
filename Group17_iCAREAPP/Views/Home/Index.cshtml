@@ -1,33 +1,130 @@
 ﻿@{
-    ViewBag.Title = "Home Page";
+    ViewBag.Title = "Home - iCARE Health Management System";
 }
 
+<style>
+    .hero-section {
+        background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+        border-radius: 0 0 2rem 2rem;
+    }
+
+    .card {
+        transition: transform 0.2s ease-in-out;
+    }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+    .btn-outline-primary {
+        border-width: 2px;
+    }
+
+    .system-status {
+        background-color: #f8f9fa;
+        border-radius: 1rem;
+        padding: 2rem;
+    }
+</style>
+
 <main>
-    <section class="row" aria-labelledby="aspnetTitle">
-        <h1 id="title">ASP.NET</h1>
-        <p class="lead">ASP.NET is a free web framework for building great Web sites and Web applications using HTML, CSS and JavaScript.</p>
-        <p><a href="https://asp.net" class="btn btn-primary btn-md">Learn more &raquo;</a></p>
+    <!-- Hero Section -->
+    <section class="hero-section text-center py-5 mb-4 text-white">
+        <div class="container">
+            <h1 class="display-4 fw-bold">Welcome to iCARE</h1>
+            <p class="lead mb-4">An integrated healthcare management system designed to streamline patient care and medical operations.</p>
+            @if (!Request.IsAuthenticated)
+            {
+                <a href="@Url.Action("Login", "Account")" class="btn btn-light btn-lg">Login to System</a>
+            }
+        </div>
     </section>
 
-    <div class="row">
-        <section class="col-md-4" aria-labelledby="gettingStartedTitle">
-            <h2 id="gettingStartedTitle">Getting started</h2>
-            <p>
-                ASP.NET MVC gives you a powerful, patterns-based way to build dynamic websites that
-                enables a clean separation of concerns and gives you full control over markup
-                for enjoyable, agile development.
-            </p>
-            <p><a class="btn btn-outline-dark" href="https://go.microsoft.com/fwlink/?LinkId=301865">Learn more &raquo;</a></p>
-        </section>
-        <section class="col-md-4" aria-labelledby="librariesTitle">
-            <h2 id="librariesTitle">Get more libraries</h2>
-            <p>NuGet is a free Visual Studio extension that makes it easy to add, remove, and update libraries and tools in Visual Studio projects.</p>
-            <p><a class="btn btn-outline-dark" href="https://go.microsoft.com/fwlink/?LinkId=301866">Learn more &raquo;</a></p>
-        </section>
-        <section class="col-md-4" aria-labelledby="hostingTitle">
-            <h2 id="hostingTitle">Web Hosting</h2>
-            <p>You can easily find a web hosting company that offers the right mix of features and price for your applications.</p>
-            <p><a class="btn btn-outline-dark" href="https://go.microsoft.com/fwlink/?LinkId=301867">Learn more &raquo;</a></p>
-        </section>
-    </div>
+    <!-- Features Section -->
+    <section class="container mb-5">
+        <div class="row g-4">
+            <!-- For Doctors -->
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm text-center">
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <i class="fas fa-user-md text-primary" style="font-size: 3rem;"></i>
+                        </div>
+                        <h3 class="card-title h4">Medical Doctors</h3>
+                        <p class="text-muted">Access and manage patient medical documentation</p>
+                    </div>
+                    @if (User.IsInRole("Doctor"))
+                    {
+                        <div class="card-footer bg-transparent border-0">
+                            <a href="@Url.Action("Index", "Documentation")" class="btn btn-outline-primary">
+                                <i class="fas fa-folder-open me-2"></i>Access Documents
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- For Nurses -->
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm text-center">
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <i class="fas fa-user-nurse text-primary" style="font-size: 3rem;"></i>
+                        </div>
+                        <h3 class="card-title h4">Nursing Staff</h3>
+                        <p class="text-muted">Record and update patient care documentation</p>
+                    </div>
+                    @if (User.IsInRole("Nurse"))
+                    {
+                        <div class="card-footer bg-transparent border-0">
+                            <a href="@Url.Action("Index", "Documentation")" class="btn btn-outline-primary">
+                                <i class="fas fa-folder-open me-2"></i>Access Documents
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- For Administrators -->
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm text-center">
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <i class="fas fa-users-cog text-primary" style="font-size: 3rem;"></i>
+                        </div>
+                        <h3 class="card-title h4">System Administrators</h3>
+                        <p class="text-muted">Manage user access</p>
+                    </div>
+                    @if (User.IsInRole("Administrator"))
+                    {
+                        <div class="card-footer bg-transparent border-0">
+                            <a href="@Url.Action("ManageUsers", "Admin")" class="btn btn-outline-primary">
+                                <i class="fas fa-cog me-2"></i>Manage System
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- System Status -->
+    <section class="container-fluid bg-light py-4">
+        <div class="container">
+            <div class="row text-center">
+                <div class="col-md-4 mb-3">
+                    <h4 class="text-primary mb-0">System Status</h4>
+                    <p class="text-success mb-0"><i class="fas fa-check-circle"></i> Operational</p>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <h4 class="text-primary mb-0">Last Update</h4>
+                    <p class="mb-0">@DateTime.Now.ToString("MMM dd, yyyy")</p>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <h4 class="text-primary mb-0">Support</h4>
+                    <p class="mb-0"><i class="fas fa-envelope"></i> support@icare.com</p>
+                </div>
+            </div>
+        </div>
+    </section>
 </main>

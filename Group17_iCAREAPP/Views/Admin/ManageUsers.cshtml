@@ -1,0 +1,77 @@
+﻿
+@model IEnumerable<Group17_iCAREAPP.Models.iCAREUser>
+
+<div class="container">
+    <h2 class="mt-4 mb-4">Manage Users</h2>
+
+    <p>
+        @Html.ActionLink("Create New User", "CreateUser", "Admin", null, new { @class = "btn btn-primary mb-3" })
+    </p>
+
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Username</th>
+                    <th>Profession</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.name</td>
+                        <td>@item.UserPassword.userName</td>
+                        <td>
+                            @if (item.iCAREWorker != null)
+                            {
+                                @item.iCAREWorker.profession
+                            }
+                        </td>
+                        <td>
+                            @if (item.UserPassword.userAccountExpiryDate.HasValue &&
+                                 item.UserPassword.userAccountExpiryDate <= DateTime.Now)
+                            {
+                                <span class="badge bg-danger">Expired</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-success">Active</span>
+                            }
+                        </td>
+                        <td>
+                            <!-- Fix the Edit link to include the controller name -->
+                            @Html.ActionLink("Edit", "EditUser", "Admin", new { id = item.ID }, new { @class = "btn btn-sm btn-primary" })
+                            @using (Html.BeginForm("DeactivateUser", "Admin", new { id = item.ID }, FormMethod.Post, new { style = "display:inline" }))
+                            {
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-danger"
+                                        onclick="return confirm('Are you sure you want to deactivate this user?');">
+                                    Deactivate
+                                </button>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Initialize DataTable
+            var table = $('.table').DataTable({
+                "responsive": true,
+                "pageLength": 10,
+                "order": [[0, "asc"]],
+                "autoWidth": false,
+                "destroy": true
+            });
+        });
+    </script>
+}
