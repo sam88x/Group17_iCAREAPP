@@ -140,6 +140,7 @@
     <Compile Include="Controllers\iCAREWorkersController.cs" />
     <Compile Include="Controllers\ManageUserController.cs" />
     <Compile Include="Controllers\ModificationHistoriesController.cs" />
+    <Compile Include="Controllers\MyBoardController.cs" />
     <Compile Include="Controllers\PaletteController.cs" />
     <Compile Include="Controllers\PatientRecordController.cs" />
     <Compile Include="Controllers\TreatmentRecordController.cs" />
@@ -214,6 +215,7 @@
     <Compile Include="Models\UserRole.cs">
       <DependentUpon>Model2.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\ViewModels\MyBoardViewModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Providers\CustomRoleProvider.cs" />
   </ItemGroup>
@@ -394,6 +396,8 @@
     <Content Include="Views\Palette\Index.cshtml" />
     <Content Include="Views\iCAREBoard\DisplayByGeoCode.cshtml" />
     <Content Include="Views\iCAREBoard\Index.cshtml" />
+    <Content Include="Views\MyBoard\DisplayMyBoard.cshtml" />
+    <Content Include="Views\MyBoard\Index.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
