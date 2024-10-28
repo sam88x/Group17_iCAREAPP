@@ -11,7 +11,8 @@ namespace Group17_iCAREAPP.Models
 {
     using System;
     using System.Collections.Generic;
-    
+    using System.Linq;
+
     public partial class TreatmentRecord
     {
         public string treatmentID { get; set; }
@@ -22,5 +23,13 @@ namespace Group17_iCAREAPP.Models
     
         public virtual iCAREWorker iCAREWorker { get; set; }
         public virtual PatientRecord PatientRecord { get; set; }
+
+        public static List<string> getPatientIDs(Group17_iCAREDBEntities db, string workerId)
+        {
+            return db.TreatmentRecord
+                .Where(p => p.workerID == workerId)
+                .Select(p => p.patientID)
+                .ToList();
+        }
     }
 }

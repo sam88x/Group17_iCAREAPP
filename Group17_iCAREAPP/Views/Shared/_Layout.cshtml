@@ -66,6 +66,9 @@
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                                 <li>@Html.ActionLink("Change Password", "ChangePassword", "Account", null, new { @class = "dropdown-item" })</li>
                                 <li><hr class="dropdown-divider"></li>
+@*You can change the workerId to current user Id*@
+                                <li>@Html.ActionLink("My Board", "MyBoard", "DisplayMyBoard", new { workerId = "0003" }, new { @class = "dropdown-item" })</li>
+                                <li><hr class="dropdown-divider"></li>
                                 <li>
                                     @using (Html.BeginForm("LogOff", "Account", FormMethod.Post, new { id = "logoutForm", @class = "dropdown-item p-0" }))
                                     {
@@ -75,7 +78,7 @@
                                         </button>
                                     }
                                 </li>
-                            </ul>
+                            </ul>  
                         </li>
                     }
                     else

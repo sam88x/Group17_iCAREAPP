@@ -1,0 +1,49 @@
+@model IEnumerable<Group17_iCAREAPP.Models.PatientRecord>
+
+@{
+    ViewBag.Title = "myBoard";
+}
+
+<h2>My Patients</h2>
+
+
+<table class="table">
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.ID)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.height)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.weight)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.bedID)
+        </th>
+    </tr>
+
+    @foreach (var item in Model)
+    {
+        <tr>
+            <th>
+                @Html.DisplayFor(modelItem => item.ID)
+            </th>
+            <th>
+                @Html.DisplayFor(modelItem => item.height)
+            </th>
+            <th>
+                @Html.DisplayFor(modelItem => item.weight)
+            </th>
+            <th>
+                @Html.DisplayFor(modelItem => item.bedID)
+            </th>
+            @*<td>
+            @Html.ActionLink("Edit", "Edit", new { id = item.ID }) |
+            @Html.ActionLink("Details", "Details", new { id = item.ID }) |
+            @Html.ActionLink("Delete", "Delete", new { id = item.ID })
+        </td>*@
+        </tr>
+    }
+
+</table>

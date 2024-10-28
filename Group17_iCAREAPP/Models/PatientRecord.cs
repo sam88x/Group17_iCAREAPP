@@ -11,7 +11,9 @@ namespace Group17_iCAREAPP.Models
 {
     using System;
     using System.Collections.Generic;
-    
+    using System.Linq;
+    using System.Data.Entity;
+
     public partial class PatientRecord
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
@@ -39,5 +41,12 @@ namespace Group17_iCAREAPP.Models
         public virtual iCAREWorker iCAREWorker { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<TreatmentRecord> TreatmentRecord { get; set; }
+
+        public static List<PatientRecord> getMyPatients(Group17_iCAREDBEntities db, List<string> patientIds)
+        {
+            return db.PatientRecord
+                .Where(p => patientIds.Contains(p.ID))
+                .ToList();
+        }
     }
 }
