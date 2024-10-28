@@ -1,77 +1,97 @@
 ﻿
-@model IEnumerable<Group17_iCAREAPP.Models.iCAREUser>
+@model IEnumerable<Group17_iCAREAPP.Controllers.UserManagementViewModel>
 
 <div class="container">
-    <h2 class="mt-4 mb-4">Manage Users</h2>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Manage Users</h2>
+        @Html.ActionLink("Create New User", "CreateUser", "Admin", null, new { @class = "btn btn-primary" })
+    </div>
 
-    <p>
-        @Html.ActionLink("Create New User", "CreateUser", "Admin", null, new { @class = "btn btn-primary mb-3" })
-    </p>
-
-    <div class="table-responsive">
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Username</th>
-                    <th>Profession</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in Model)
-                {
-                    <tr>
-                        <td>@item.name</td>
-                        <td>@item.UserPassword.userName</td>
-                        <td>
-                            @if (item.iCAREWorker != null)
-                            {
-                                @item.iCAREWorker.profession
-                            }
-                        </td>
-                        <td>
-                            @if (item.UserPassword.userAccountExpiryDate.HasValue &&
-                                 item.UserPassword.userAccountExpiryDate <= DateTime.Now)
-                            {
-                                <span class="badge bg-danger">Expired</span>
-                            }
-                            else
-                            {
-                                <span class="badge bg-success">Active</span>
-                            }
-                        </td>
-                        <td>
-                            <!-- Fix the Edit link to include the controller name -->
-                            @Html.ActionLink("Edit", "EditUser", "Admin", new { id = item.ID }, new { @class = "btn btn-sm btn-primary" })
-                            @using (Html.BeginForm("DeactivateUser", "Admin", new { id = item.ID }, FormMethod.Post, new { style = "display:inline" }))
-                            {
-                                @Html.AntiForgeryToken()
-                                <button type="submit" class="btn btn-sm btn-danger"
-                                        onclick="return confirm('Are you sure you want to deactivate this user?');">
-                                    Deactivate
-                                </button>
-                            }
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+    <div class="card shadow">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped" id="usersTable">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Username</th>
+                            <th>User Type</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>Expiry Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@item.Name</td>
+                                <td>@item.Username</td>
+                                <td>@item.UserType</td>
+                                <td>@item.Role</td>
+                                <td>
+                                    @if (item.AccountStatus == "Active")
+                                    {
+                                        <span class="badge bg-success">Active</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">Inactive</span>
+                                    }
+                                </td>
+                                <td>
+                                    @(item.AccountExpiryDate?.ToString("dd/MM/yyyy") ?? "No expiry")
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="@Url.Action("EditUser", "Admin", new { id = item.ID })"
+                                           class="btn btn-sm btn-primary">
+                                            <i class="fas fa-edit"></i> Edit
+                                        </a>
+                                        @if (item.AccountStatus == "Active")
+                                        {
+                                            using (Html.BeginForm("DeactivateUser", "Admin", new { id = item.ID },
+                                                   FormMethod.Post, new { style = "display:inline;" }))
+                                            {
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-sm btn-danger"
+                                                        onclick="return confirm('Are you sure you want to deactivate this user?');">
+                                                    <i class="fas fa-user-times"></i> Deactivate
+                                                </button>
+                                            }
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
 
 @section Scripts {
     <script>
         $(document).ready(function () {
-            // Initialize DataTable
-            var table = $('.table').DataTable({
+            $('#usersTable').DataTable({
                 "responsive": true,
+                "ordering": true,
                 "pageLength": 10,
-                "order": [[0, "asc"]],
                 "autoWidth": false,
-                "destroy": true
+                "language": {
+                    "search": "Filter users:"
+                },
+                "columnDefs": [
+                    { "orderable": false, "targets": 6 } // Disable sorting on Actions column
+                ]
             });
+
+            // Auto-hide alerts after 5 seconds
+            setTimeout(function () {
+                $('.alert').fadeOut('slow');
+            }, 5000);
         });
     </script>
 }

@@ -11,29 +11,45 @@ using System.Data.Entity.Infrastructure;
 
 namespace Group17_iCAREAPP.Controllers
 {
-    /// <summary>
-    /// Controller for handling all administrator functionality related to user management
-    /// Only administrators can access these actions
-    /// </summary>
     [Authorize(Roles = "Administrator")]
     public class AdminController : Controller
     {
         private readonly Group17_iCAREDBEntities db = new Group17_iCAREDBEntities();
 
-        /// <summary>
-        /// Displays a list of all users in the system
-        /// </summary>
         public ActionResult ManageUsers()
         {
-            // Get all users with their related information
-            var users = db.iCAREUser
-                .Include(u => u.iCAREWorker)
-                .Include(u => u.iCAREAdmin)
-                .Include(u => u.UserPassword)
-                .Include(u => u.iCAREWorker.UserRole)
-                .ToList();
+            try
+            {
+                var users = db.iCAREUser
+                    .Include(u => u.iCAREWorker)
+                    .Include(u => u.iCAREAdmin)
+                    .Include(u => u.UserPassword)
+                    .Include(u => u.iCAREWorker.UserRole)
+                    .Select(u => new UserManagementViewModel
+                    {
+                        ID = u.ID,
+                        Name = u.name ?? "N/A",
+                        Username = u.UserPassword != null ? u.UserPassword.userName : "N/A",
+                        UserType = u.iCAREAdmin != null ? "Administrator" :
+                                 u.iCAREWorker != null ? u.iCAREWorker.profession : "Unknown",
+                        Role = u.iCAREWorker != null && u.iCAREWorker.UserRole != null ?
+                              u.iCAREWorker.UserRole.roleName : "N/A",
+                        AccountStatus = u.UserPassword != null &&
+                                      u.UserPassword.userAccountExpiryDate <= DateTime.Now ?
+                                      "Inactive" : "Active",
+                        AccountExpiryDate = u.UserPassword != null ?
+                                          u.UserPassword.userAccountExpiryDate : null
+                    })
+                    .ToList();
 
-            return View(users);
+                return View(users);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error in ManageUsers: {ex.Message}");
+                TempData["Error"] = "An error occurred while loading users.";
+                return RedirectToAction("Index", "Home");
+            }
         }
 
         /// <summary>
@@ -42,151 +58,150 @@ namespace Group17_iCAREAPP.Controllers
         [HttpGet]
         public ActionResult CreateUser()
         {
-            // Prepare dropdown for user types
-            ViewBag.UserTypes = new SelectList(new[]
+            try
             {
-        new { Value = "Admin", Text = "Administrator" },
-        new { Value = "Doctor", Text = "Doctor" },
-        new { Value = "Nurse", Text = "Nurse" }
-    }, "Value", "Text");
+                var model = new CreateUserViewModel();
+                // Prepare dropdown for professions
+                ViewBag.Professions = new SelectList(new[]
+                {
+            new { Value = "Doctor", Text = "Doctor" },
+            new { Value = "Nurse", Text = "Nurse" }
+        }, "Value", "Text");
 
-            // Prepare dropdown for worker roles (will be used for doctors and nurses)
-            ViewBag.Roles = new SelectList(db.UserRole, "ID", "roleName");
-
-            return View();
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error in CreateUser GET: {ex.Message}");
+                TempData["Error"] = "An error occurred while loading the create user form.";
+                return RedirectToAction("ManageUsers");
+            }
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult CreateUser(FormCollection form)
+        public ActionResult CreateUser(CreateUserViewModel model)
         {
-            string name = form["name"];
-            string userName = form["userName"];
-            string password = form["password"];
-            string profession = form["profession"];
-            string accountExpiryDate = form["accountExpiryDate"];
+            System.Diagnostics.Debug.WriteLine("CreateUser POST started");
 
-            try
+            ModelState.Remove("UserType");
+
+            if (!ModelState.IsValid)
             {
-                if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(userName) ||
-                    string.IsNullOrEmpty(password) || string.IsNullOrEmpty(profession))
-                {
-                    ModelState.AddModelError("", "All fields except expiry date are required.");
-                    return View();
-                }
+                PrepareViewBagForCreateUser();
+                return View(model);
+            }
 
-                // Check username
-                if (db.UserPassword.Any(u => u.userName == userName))
-                {
-                    ModelState.AddModelError("", "Username already exists.");
-                    return View();
-                }
-
-                // Get role ID
-                string roleId;
-                if (profession == "Doctor")
-                {
-                    roleId = "DR001";
-                }
-                else if (profession == "Nurse")
-                {
-                    roleId = "NR001";
-                }
-                else
-                {
-                    ModelState.AddModelError("", "Invalid profession selected.");
-                    return View();
-                }
-
-                var userId = Guid.NewGuid().ToString();
-                System.Diagnostics.Debug.WriteLine($"Generated User ID: {userId}");
-
+            using (var dbContextTransaction = db.Database.BeginTransaction())
+            {
                 try
                 {
-                    // Create base user
-                    var user = new iCAREUser
+                    // First, verify that we have a valid admin ID
+                    var currentUsername = User.Identity.Name;
+                    var adminUser = db.iCAREAdmin.FirstOrDefault();
+
+                    if (adminUser == null)
+                    {
+                        System.Diagnostics.Debug.WriteLine("No admin found in the system");
+                        ModelState.AddModelError("", "System configuration error: No admin found.");
+                        PrepareViewBagForCreateUser();
+                        return View(model);
+                    }
+
+                    System.Diagnostics.Debug.WriteLine($"Using admin ID: {adminUser.ID}");
+
+                    // Check username uniqueness
+                    if (db.UserPassword.Any(u => u.userName == model.Username))
+                    {
+                        ModelState.AddModelError("Username", "Username already exists.");
+                        PrepareViewBagForCreateUser();
+                        return View(model);
+                    }
+
+                    var userId = Guid.NewGuid().ToString();
+                    System.Diagnostics.Debug.WriteLine($"Generated User ID: {userId}");
+
+                    // 1. Create iCAREUser
+                    var iCAREUser = new iCAREUser
                     {
                         ID = userId,
-                        name = name
+                        name = model.Name
                     };
-                    db.iCAREUser.Add(user);
+                    db.iCAREUser.Add(iCAREUser);
                     db.SaveChanges();
                     System.Diagnostics.Debug.WriteLine("Created iCAREUser successfully");
 
-                    // Create password
+                    // 2. Create UserPassword
                     var userPassword = new UserPassword
                     {
                         ID = userId,
-                        userName = userName,
-                        encryptedPassword = HashPassword(password),
-                        passwordExpiryTime = 90
+                        userName = model.Username,
+                        encryptedPassword = HashPassword(model.Password),
+                        passwordExpiryTime = 90,
+                        userAccountExpiryDate = model.AccountExpiryDate
                     };
-
-                    if (!string.IsNullOrEmpty(accountExpiryDate))
-                    {
-                        if (DateTime.TryParse(accountExpiryDate, out DateTime expiryDate))
-                        {
-                            userPassword.userAccountExpiryDate = expiryDate;
-                        }
-                    }
                     db.UserPassword.Add(userPassword);
                     db.SaveChanges();
                     System.Diagnostics.Debug.WriteLine("Created UserPassword successfully");
 
-                    // Create worker with known admin ID
-                    var worker = new iCAREWorker
+                    // 3. Create iCAREWorker with valid admin reference
+                    if (model.Profession == "Doctor" || model.Profession == "Nurse")
                     {
-                        ID = userId,
-                        profession = profession,
-                        creator = "0001",  // Using the known admin ID
-                        userPermission = roleId
-                    };
-                    db.iCAREWorker.Add(worker);
-                    db.SaveChanges();
-                    System.Diagnostics.Debug.WriteLine("Created iCAREWorker successfully");
+                        var roleId = model.Profession == "Doctor" ? "DR001" : "NR001";
 
-                    TempData["Success"] = $"User {name} ({profession}) created successfully.";
+                        var worker = new iCAREWorker
+                        {
+                            ID = userId,
+                            profession = model.Profession,
+                            creator = adminUser.ID,  // Use the verified admin ID
+                            userPermission = roleId,
+                            iCAREAdmin = adminUser  // Set the navigation property
+                        };
+                        db.iCAREWorker.Add(worker);
+                        db.SaveChanges();
+                        System.Diagnostics.Debug.WriteLine("Created iCAREWorker successfully");
+                    }
+
+                    dbContextTransaction.Commit();
+                    System.Diagnostics.Debug.WriteLine("Transaction committed successfully");
+
+                    TempData["Success"] = $"User {model.Name} ({model.Profession}) created successfully.";
                     return RedirectToAction("ManageUsers");
                 }
-                catch (DbUpdateException ex)
+                catch (Exception ex)
                 {
-                    var innerException = ex.InnerException;
-                    while (innerException != null)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"Inner Exception: {innerException.Message}");
-                        System.Diagnostics.Debug.WriteLine($"Stack Trace: {innerException.StackTrace}");
-                        innerException = innerException.InnerException;
-                    }
-
-                    // Cleanup if needed
-                    var createdUser = db.iCAREUser.Find(userId);
-                    if (createdUser != null)
-                    {
-                        db.iCAREUser.Remove(createdUser);
-                    }
-
-                    var createdPassword = db.UserPassword.Find(userId);
-                    if (createdPassword != null)
-                    {
-                        db.UserPassword.Remove(createdPassword);
-                    }
-
-                    try
-                    {
-                        db.SaveChanges();
-                    }
-                    catch { /* Ignore cleanup errors */ }
-
-                    ModelState.AddModelError("", "Error creating user. Please try again.");
+                    dbContextTransaction.Rollback();
+                    LogException("Error occurred", ex);
+                    ModelState.AddModelError("", "An error occurred while creating the user. Please try again.");
+                    PrepareViewBagForCreateUser();
+                    return View(model);
                 }
             }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Outer Exception: {ex.Message}");
-                ModelState.AddModelError("", "An unexpected error occurred.");
-            }
+        }
 
-            return View();
+        private void LogException(string context, Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"{context}:");
+            System.Diagnostics.Debug.WriteLine($"Message: {ex.Message}");
+
+            if (ex is DbUpdateException dbEx && dbEx.InnerException != null)
+            {
+                var innerEx = dbEx.InnerException;
+                while (innerEx != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Inner Exception: {innerEx.Message}");
+                    innerEx = innerEx.InnerException;
+                }
+            }
+        }
+
+        private void PrepareViewBagForCreateUser()
+        {
+            ViewBag.Professions = new SelectList(new[]
+            {
+        new { Value = "Doctor", Text = "Doctor" },
+        new { Value = "Nurse", Text = "Nurse" }
+    }, "Value", "Text");
         }
 
 
@@ -393,4 +408,16 @@ namespace Group17_iCAREAPP.Controllers
         [Display(Name = "New Password")]
         public string NewPassword { get; set; }
     }
+
+    public class UserManagementViewModel
+    {
+        public string ID { get; set; }
+        public string Name { get; set; }
+        public string Username { get; set; }
+        public string UserType { get; set; }
+        public string Role { get; set; }
+        public string AccountStatus { get; set; }
+        public DateTime? AccountExpiryDate { get; set; }
+    }
 }
+
