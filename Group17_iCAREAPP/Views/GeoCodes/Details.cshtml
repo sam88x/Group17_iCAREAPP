@@ -108,6 +108,7 @@
         <button id="confrimAssignButton" onclick="submitAssign()" disabled>Assign</button>
     </div>
 </div>
+
 -->
 
 <script>
@@ -123,6 +124,7 @@
     }
 
     function openAssignModal(patientId,workerId){
+
          document.getElementById("modalContent").innerHTML = `
             <h4>Patient Assign</h4>
             <label for="descriptionInput">Treatment Description:</label>
@@ -133,6 +135,7 @@
             <button onclick="closeModal()">Close</button>
         `;
         console.log(workerId);
+
         document.getElementById("modalOverlay").style.display = "block";
         document.getElementById("detailModal").style.display = "block";
     }
@@ -157,6 +160,7 @@
             treatmentID: treatmentId,
             description: description,
             treatmentDate: thedate,
+
             patientID: patientId,
             workerID: workerId
         };
@@ -164,6 +168,7 @@
         console.log(requestData);
 
         fetch('@Url.Action("AssignPatient", "TreatmentRecords")', {
+
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -178,8 +183,10 @@
                 return response.json();
             })
             .then(data => {
+
                 if (data.success);
                     alert(data.message);
+
                 closeModal();
             })
             .catch(error => {

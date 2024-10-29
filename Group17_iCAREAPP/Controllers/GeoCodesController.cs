@@ -13,7 +13,7 @@ namespace Group17_iCAREAPP.Controllers
 {
     public class GeoCodesController : Controller
     {
-        private Group17_iCAREDBEntities1 db = new Group17_iCAREDBEntities1();
+        private Group17_iCAREDBEntities db = new Group17_iCAREDBEntities();
 
         // GET: GeoCodes
         public ActionResult Index()
@@ -37,6 +37,7 @@ namespace Group17_iCAREAPP.Controllers
                 ViewBag.UserId = user.ID;
     
             
+
             return View(patientRecords);
         }
 

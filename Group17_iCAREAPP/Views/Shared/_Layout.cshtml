@@ -42,6 +42,16 @@
                                 <li>@Html.ActionLink("Create New Patient", "Create", "PatientRecord", null, new { @class = "dropdown-item" })</li>
                             </ul>
                         </li>
+                        <!-- Add new Palette tab -->
+                        <li class="nav-item">
+                            @Html.ActionLink("Palette", "Index", "Palette", null, new { @class = "nav-link" })
+                        </li>
+                        <li class="nav-item">
+                            @Html.ActionLink("iCARE Board", "Index", "iCAREBoard", null, new { @class = "nav-link" })
+                        </li>
+                        <li class="nav-item">
+                            @Html.ActionLink("My Board", "Index", "GeoCodes", null, new { @class = "nav-link" })
+                        </li>
                     }
 
                     @if (User.IsInRole("Administrator"))
