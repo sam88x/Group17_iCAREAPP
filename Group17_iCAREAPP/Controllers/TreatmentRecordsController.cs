@@ -21,6 +21,8 @@ namespace Group17_iCAREAPP.Controllers
             return View(treatmentRecord.ToList());
         }
 
+
+
         // GET: TreatmentRecords/Details/5
         public ActionResult Details(string id)
         {

@@ -4,9 +4,11 @@ using System.Web.Security;
 using Group17_iCAREAPP.Models;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Security.Claims;
 using System.Text;
 using System.Data.Entity;
 using System.ComponentModel.DataAnnotations;
+using System.Collections.Generic;
 
 namespace Group17_iCAREAPP.Controllers
 {
@@ -67,6 +69,13 @@ namespace Group17_iCAREAPP.Controllers
                             role,
                             FormsAuthentication.FormsCookiePath
                         );
+
+                        /*
+                        //user ID saved in Claims
+                        var claims = new List<Claim>
+                        {
+                            new Claim("UserId",userPassword.iCAREUser.ID)
+                        };*/
 
                         string encryptedTicket = FormsAuthentication.Encrypt(ticket);
                         var cookie = new System.Web.HttpCookie(FormsAuthentication.FormsCookieName, encryptedTicket);

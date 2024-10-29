@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
 using System.Linq;
+using System.Security.Claims;
 using System.Net;
 using System.Web;
 using System.Web.Mvc;
@@ -28,12 +29,15 @@ namespace Group17_iCAREAPP.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            GeoCodes geoCodes = db.GeoCodes.Find(id);
-            if (geoCodes == null)
-            {
-                return HttpNotFound();
-            }
-            return View(geoCodes);
+
+            var patientRecords = db.PatientRecord.Where(pr => pr.geographicalUnit == id).ToList();
+            var user = db.iCAREUser.FirstOrDefault(u => u.name == User.Identity.Name);
+
+            if (user != null)
+                ViewBag.UserId = user.ID;
+    
+            
+            return View(patientRecords);
         }
 
         // GET: GeoCodes/Create
