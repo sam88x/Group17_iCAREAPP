@@ -31,7 +31,7 @@ namespace Group17_iCAREAPP.Controllers
             }
 
             var patientRecords = db.PatientRecord.Where(pr => pr.geographicalUnit == id).ToList();
-            var user = db.iCAREUser.FirstOrDefault(u => u.name == User.Identity.Name);
+            var user = db.UserPassword.FirstOrDefault(u => u.userName == User.Identity.Name);
 
             if (user != null)
                 ViewBag.UserId = user.ID;

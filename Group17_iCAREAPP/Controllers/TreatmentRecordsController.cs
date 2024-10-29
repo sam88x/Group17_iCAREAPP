@@ -60,9 +60,27 @@ namespace Group17_iCAREAPP.Controllers
                 return RedirectToAction("Index");
             }
 
-            ViewBag.workerID = new SelectList(db.iCAREWorker, "ID", "profession", treatmentRecord.workerID);
-            ViewBag.patientID = new SelectList(db.PatientRecord, "ID", "name", treatmentRecord.patientID);
-            return View(treatmentRecord);
+            
+            return View(treatmentRecord);      
+
+        }
+
+        [HttpPost]
+        //[ValidateAntiForgeryToken]
+        public ActionResult AssignPatient([Bind(Include = "treatmentID,description,treatmentDate,patientID,workerID")] TreatmentRecord treatmentRecord)
+        {
+            if (ModelState.IsValid)
+            {
+                db.TreatmentRecord.Add(treatmentRecord);
+                db.SaveChanges();
+                //return RedirectToAction("Index");
+                return Json(new { success = true, message = "Assign succeeded" });
+            }
+
+
+            //return View(treatmentRecord);
+            return Json(new { success = false, message = "Assign failed" });
+
         }
 
         // GET: TreatmentRecords/Edit/5
