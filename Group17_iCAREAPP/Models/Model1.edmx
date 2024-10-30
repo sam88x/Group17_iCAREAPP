@@ -65,6 +65,14 @@
           <Property Name="description" Type="nvarchar(max)" Nullable="false" />
           <Property Name="modifiedByUserID" Type="nvarchar" MaxLength="255" Nullable="false" />
         </EntityType>
+        <EntityType Name="PatientAssignmentStatus">
+          <Key>
+            <PropertyRef Name="PatientRecordID" />
+          </Key>
+          <Property Name="PatientRecordID" Type="nvarchar" MaxLength="255" Nullable="false" />
+          <Property Name="AssignmentStatus" Type="nvarchar" MaxLength="255" Nullable="false" />
+          <Property Name="NumOfNurses" Type="int" Nullable="false" />
+        </EntityType>
         <EntityType Name="PatientRecord">
           <Key>
             <PropertyRef Name="ID" />
@@ -180,15 +188,27 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_PatientAssignmentStatus_PatientRecord">
+          <End Role="PatientRecord" Type="Self.PatientRecord" Multiplicity="1" />
+          <End Role="PatientAssignmentStatus" Type="Self.PatientAssignmentStatus" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="PatientRecord">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="PatientAssignmentStatus">
+              <PropertyRef Name="PatientRecordID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_PatientRecord_GeoCodes">
-          <End Role="GeoCodes" Type="Self.GeoCodes" Multiplicity="1" />
-          <End Role="PatientRecord" Type="Self.PatientRecord" Multiplicity="0..1" />
+          <End Role="GeoCodes" Type="Self.GeoCodes" Multiplicity="0..1" />
+          <End Role="PatientRecord" Type="Self.PatientRecord" Multiplicity="*" />
           <ReferentialConstraint>
             <Principal Role="GeoCodes">
               <PropertyRef Name="ID" />
             </Principal>
             <Dependent Role="PatientRecord">
-              <PropertyRef Name="ID" />
+              <PropertyRef Name="geographicalUnit" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -272,6 +292,7 @@
           <EntitySet Name="iCAREUser" EntityType="Self.iCAREUser" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="iCAREWorker" EntityType="Self.iCAREWorker" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="ModificationHistory" EntityType="Self.ModificationHistory" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="PatientAssignmentStatus" EntityType="Self.PatientAssignmentStatus" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="PatientRecord" EntityType="Self.PatientRecord" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="TreatmentRecord" EntityType="Self.TreatmentRecord" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="UserPassword" EntityType="Self.UserPassword" Schema="dbo" store:Type="Tables" />
@@ -299,6 +320,10 @@
           <AssociationSet Name="FK_ModificationHistory_Table_1" Association="Self.FK_ModificationHistory_Table_1">
             <End Role="DocumentMetadata" EntitySet="DocumentMetadata" />
             <End Role="ModificationHistory" EntitySet="ModificationHistory" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PatientAssignmentStatus_PatientRecord" Association="Self.FK_PatientAssignmentStatus_PatientRecord">
+            <End Role="PatientRecord" EntitySet="PatientRecord" />
+            <End Role="PatientAssignmentStatus" EntitySet="PatientAssignmentStatus" />
           </AssociationSet>
           <AssociationSet Name="FK_PatientRecord_GeoCodes" Association="Self.FK_PatientRecord_GeoCodes">
             <End Role="GeoCodes" EntitySet="GeoCodes" />
@@ -361,6 +386,7 @@
           <Property Name="ID" Type="String" MaxLength="255" FixedLength="false" Unicode="true" Nullable="false" />
           <Property Name="description" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" Nullable="false" />
           <NavigationProperty Name="PatientRecord" Relationship="Self.FK_PatientRecord_GeoCodes" FromRole="GeoCodes" ToRole="PatientRecord" />
+          <NavigationProperty Name="PatientRecord1" Relationship="Group17_iCAREDBModel.FK_PatientRecord_GeoCodes1" FromRole="GeoCodes" ToRole="PatientRecord" />
         </EntityType>
         <EntityType Name="iCAREAdmin">
           <Key>
@@ -430,6 +456,8 @@
           <NavigationProperty Name="GeoCodes" Relationship="Self.FK_PatientRecord_GeoCodes" FromRole="PatientRecord" ToRole="GeoCodes" />
           <NavigationProperty Name="iCAREWorker" Relationship="Self.FK_PatientRecord_iCAREWorker" FromRole="PatientRecord" ToRole="iCAREWorker" />
           <NavigationProperty Name="TreatmentRecord" Relationship="Self.FK_TreatmentRecord_PatientRecord" FromRole="PatientRecord" ToRole="TreatmentRecord" />
+          <NavigationProperty Name="GeoCodes1" Relationship="Group17_iCAREDBModel.FK_PatientRecord_GeoCodes1" FromRole="PatientRecord" ToRole="GeoCodes" />
+          <NavigationProperty Name="PatientAssignmentStatus" Relationship="Group17_iCAREDBModel.FK_PatientAssignmentStatus_PatientRecord" FromRole="PatientRecord" ToRole="PatientAssignmentStatus" />
         </EntityType>
         <EntityType Name="TreatmentRecord">
           <Key>
@@ -682,7 +710,49 @@
             <End Role="PatientRecord" EntitySet="PatientRecord" />
             <End Role="TreatmentRecord" EntitySet="TreatmentRecord" />
           </AssociationSet>
+          <EntitySet Name="PatientAssignmentStatus" EntityType="Group17_iCAREDBModel.PatientAssignmentStatus" />
+          <AssociationSet Name="FK_PatientRecord_GeoCodes1" Association="Group17_iCAREDBModel.FK_PatientRecord_GeoCodes1">
+            <End Role="GeoCodes" EntitySet="GeoCodes" />
+            <End Role="PatientRecord" EntitySet="PatientRecord" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PatientAssignmentStatus_PatientRecord" Association="Group17_iCAREDBModel.FK_PatientAssignmentStatus_PatientRecord">
+            <End Role="PatientRecord" EntitySet="PatientRecord" />
+            <End Role="PatientAssignmentStatus" EntitySet="PatientAssignmentStatus" />
+          </AssociationSet>
         </EntityContainer>
+        <EntityType Name="PatientAssignmentStatus">
+          <Key>
+            <PropertyRef Name="PatientRecordID" />
+          </Key>
+          <Property Name="PatientRecordID" Type="String" Nullable="false" MaxLength="255" FixedLength="false" Unicode="true" />
+          <Property Name="AssignmentStatus" Type="String" Nullable="false" MaxLength="255" FixedLength="false" Unicode="true" />
+          <Property Name="NumOfNurses" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="PatientRecord" Relationship="Group17_iCAREDBModel.FK_PatientAssignmentStatus_PatientRecord" FromRole="PatientAssignmentStatus" ToRole="PatientRecord" />
+        </EntityType>
+        <Association Name="FK_PatientRecord_GeoCodes1">
+          <End Type="Group17_iCAREDBModel.GeoCodes" Role="GeoCodes" Multiplicity="0..1" />
+          <End Type="Group17_iCAREDBModel.PatientRecord" Role="PatientRecord" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="GeoCodes">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="PatientRecord">
+              <PropertyRef Name="geographicalUnit" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PatientAssignmentStatus_PatientRecord">
+          <End Type="Group17_iCAREDBModel.PatientRecord" Role="PatientRecord" Multiplicity="1" />
+          <End Type="Group17_iCAREDBModel.PatientAssignmentStatus" Role="PatientAssignmentStatus" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="PatientRecord">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="PatientAssignmentStatus">
+              <PropertyRef Name="PatientRecordID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
       </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -800,6 +870,15 @@
               <MappingFragment StoreEntitySet="UserRole">
                 <ScalarProperty Name="ID" ColumnName="ID" />
                 <ScalarProperty Name="roleName" ColumnName="roleName" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="PatientAssignmentStatus">
+            <EntityTypeMapping TypeName="Group17_iCAREDBModel.PatientAssignmentStatus">
+              <MappingFragment StoreEntitySet="PatientAssignmentStatus">
+                <ScalarProperty Name="NumOfNurses" ColumnName="NumOfNurses" />
+                <ScalarProperty Name="AssignmentStatus" ColumnName="AssignmentStatus" />
+                <ScalarProperty Name="PatientRecordID" ColumnName="PatientRecordID" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>

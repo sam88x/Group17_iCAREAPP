@@ -36,5 +36,6 @@ namespace Group17_iCAREAPP.Models
         public virtual DbSet<TreatmentRecord> TreatmentRecord { get; set; }
         public virtual DbSet<UserPassword> UserPassword { get; set; }
         public virtual DbSet<UserRole> UserRole { get; set; }
+        public virtual DbSet<PatientAssignmentStatus> PatientAssignmentStatus { get; set; }
     }
 }

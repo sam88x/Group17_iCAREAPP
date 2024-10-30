@@ -29,6 +29,9 @@
         <AssociationConnector Association="Group17_iCAREDBModel.FK_PatientRecord_iCAREWorker" ManuallyRouted="false" />
         <AssociationConnector Association="Group17_iCAREDBModel.FK_TreatmentRecord_iCAREWorker" ManuallyRouted="false" />
         <AssociationConnector Association="Group17_iCAREDBModel.FK_TreatmentRecord_PatientRecord" ManuallyRouted="false" />
+        <EntityTypeShape EntityType="Group17_iCAREDBModel.PatientAssignmentStatus" Width="1.5" PointX="12.75" PointY="8.125" />
+        <AssociationConnector Association="Group17_iCAREDBModel.FK_PatientRecord_GeoCodes1" />
+        <AssociationConnector Association="Group17_iCAREDBModel.FK_PatientAssignmentStatus_PatientRecord" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

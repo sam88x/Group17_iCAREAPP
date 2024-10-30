@@ -39,5 +39,7 @@ namespace Group17_iCAREAPP.Models
         public virtual iCAREWorker iCAREWorker { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<TreatmentRecord> TreatmentRecord { get; set; }
+        public virtual GeoCodes GeoCodes1 { get; set; }
+        public virtual PatientAssignmentStatus PatientAssignmentStatus { get; set; }
     }
 }
