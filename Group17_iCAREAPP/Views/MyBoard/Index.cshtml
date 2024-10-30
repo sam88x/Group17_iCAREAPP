@@ -4,7 +4,7 @@
 <div class="container mt-4">
     <div class="card mb-4">
         <div class="card-body">
-            <h2 class="card-title">My Patient Board</h2>
+            <h2 class="card-title">My Board</h2>
             <p class="text-muted mb-0">
                 @Model.Worker.iCAREUser.name - @Model.Worker.profession
                 <span class="badge bg-info ms-2">@(Model.IsDoctor ? "Doctor" : "Nurse")</span>
@@ -34,7 +34,7 @@
                                 <th>Blood Group</th>
                                 <th>Last Treatment</th>
                                 <th>Documents</th>
-                                <th></th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -57,7 +57,10 @@
                                         <span class="badge bg-secondary">@info.DocumentCount</span>
                                     </td>
                                     <td>
-                                        @Html.ActionLink("View", "Details", "PatientRecord", new { id = info.Patient.ID }, new { @class = "btn btn-sm btn-primary" })
+                                        <div class="btn-group">
+                                            @Html.ActionLink("View", "Details", "PatientRecord", new { id = info.Patient.ID }, new { @class = "btn btn-sm btn-primary" })
+                                            @Html.ActionLink("New Document", "Create", "Document", new { patientId = info.Patient.ID }, new { @class = "btn btn-sm btn-success" })
+                                        </div>
                                     </td>
                                 </tr>
                             }
@@ -91,7 +94,10 @@
                                     Last treatment: @info.LastTreatment.treatmentDate.ToString("MMM dd, yyyy")
                                 </div>
                             }
-                            @Html.ActionLink("Patient Details", "Details", "PatientRecord", new { id = info.Patient.ID }, new { @class = "btn btn-primary btn-sm" })
+                            <div class="btn-group">
+                                @Html.ActionLink("Patient Details", "Details", "PatientRecord", new { id = info.Patient.ID }, new { @class = "btn btn-primary btn-sm" })
+                                @Html.ActionLink("New Document", "Create", "Document", new { patientId = info.Patient.ID }, new { @class = "btn btn-success btn-sm" })
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -115,5 +121,13 @@
             background-color: #f8f9fa;
             border-bottom: 1px solid #dee2e6;
         }
+
+        .btn-group .btn {
+            margin-right: 5px;
+        }
+
+            .btn-group .btn:last-child {
+                margin-right: 0;
+            }
     </style>
 }

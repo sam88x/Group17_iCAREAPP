@@ -28,6 +28,9 @@
 
                     @if (User.IsInRole("Doctor") || User.IsInRole("Nurse"))
                     {
+                        <li class="nav-item">
+                            @Html.ActionLink("My Board", "Index", "MyBoard", null, new { @class = "nav-link" })
+                        </li>
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="patientDropdown" role="button"
                                data-bs-toggle="dropdown" aria-expanded="false">
@@ -38,7 +41,6 @@
                                 <li>@Html.ActionLink("Create New Patient", "Create", "PatientRecord", null, new { @class = "dropdown-item" })</li>
                             </ul>
                         </li>
-                        <!-- Add new Palette tab -->
                         <li class="nav-item">
                             @Html.ActionLink("Palette", "Index", "Palette", null, new { @class = "nav-link" })
                         </li>
@@ -46,8 +48,9 @@
                             @Html.ActionLink("iCARE Board", "Index", "iCAREBoard", null, new { @class = "nav-link" })
                         </li>
                         <li class="nav-item">
-                            @Html.ActionLink("My Board", "Index", "GeoCodes", null, new { @class = "nav-link" })
+                            @Html.ActionLink("iCAREBoard", "Index", "GeoCodes", null, new { @class = "nav-link" })
                         </li>
+
                     }
 
                     @if (User.IsInRole("Administrator"))

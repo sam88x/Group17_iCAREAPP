@@ -14,6 +14,12 @@ namespace Group17_iCAREAPP
             routes.IgnoreRoute("{resource}.axd/{*pathInfo}");
 
             routes.MapRoute(
+                name: "DocumentDetails",
+                url: "Document/Details/{id}",
+                defaults: new { controller = "Document", action = "Details" }
+            );
+
+            routes.MapRoute(
                 name: "Default",
                 url: "{controller}/{action}/{id}",
                 defaults: new { controller = "Home", action = "Index", id = UrlParameter.Optional }

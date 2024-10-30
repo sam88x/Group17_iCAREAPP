@@ -1,0 +1,111 @@
+﻿@* Views/PatientRecord/Details.cshtml *@
+@model Group17_iCAREAPP.Models.PatientRecord
+
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header">
+            <h3>Patient Details</h3>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h4>Personal Information</h4>
+                    <dl class="row">
+                        <dt class="col-sm-4">Patient ID</dt>
+                        <dd class="col-sm-8">@Model.ID</dd>
+
+                        <dt class="col-sm-4">Name</dt>
+                        <dd class="col-sm-8">@Model.name</dd>
+
+                        <dt class="col-sm-4">Date of Birth</dt>
+                        <dd class="col-sm-8">@(Model.dateOfBirth?.ToString("MMM dd, yyyy") ?? "Not specified")</dd>
+
+                        <dt class="col-sm-4">Blood Group</dt>
+                        <dd class="col-sm-8">@(Model.bloodGroup ?? "Not specified")</dd>
+                    </dl>
+                </div>
+                <div class="col-md-6">
+                    <h4>Treatment Information</h4>
+                    <dl class="row">
+                        <dt class="col-sm-4">Treatment Area</dt>
+                        <dd class="col-sm-8">@(Model.treatmentArea ?? "Not assigned")</dd>
+
+                        <dt class="col-sm-4">Bed ID</dt>
+                        <dd class="col-sm-8">@(Model.bedID ?? "Not assigned")</dd>
+
+                        <dt class="col-sm-4">Documents</dt>
+                        <dd class="col-sm-8">@Model.DocumentMetadata.Count</dd>
+                    </dl>
+                </div>
+            </div>
+
+            @if (Model.TreatmentRecord.Any())
+            {
+                <div class="mt-4">
+                    <h4>Treatment History</h4>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Description</th>
+                                    <th>Provider</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var treatment in Model.TreatmentRecord.OrderByDescending(t => t.treatmentDate))
+                                {
+                                    <tr>
+                                        <td>@treatment.treatmentDate.ToString("MMM dd, yyyy")</td>
+                                        <td>@treatment.description</td>
+                                        <td>@treatment.iCAREWorker.iCAREUser.name</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+
+            @if (Model.DocumentMetadata.Any())
+            {
+                <div class="mt-4">
+                    <h4>Documents</h4>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Created</th>
+                                    <th>Created By</th>
+                                    <th>Version</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var doc in Model.DocumentMetadata.OrderByDescending(d => d.dateOfCreation))
+                                {
+                                    <tr>
+                                        <td>@doc.docName</td>
+                                        <td>@doc.dateOfCreation.ToString("MMM dd, yyyy")</td>
+                                        <td>@doc.iCAREWorker.iCAREUser.name</td>
+                                        <td>@doc.version</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+
+            <div class="mt-4">
+                <a href="@Url.Action("Create", "Document", new { patientId = Model.ID })" class="btn btn-success">
+                    <i class="fas fa-plus"></i> New Document
+                </a>
+                <a href="@Url.Action("Index", "MyBoard")" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to My Board
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+

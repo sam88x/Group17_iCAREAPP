@@ -33,7 +33,7 @@ namespace Group17_iCAREAPP.Controllers
         // POST: PatientRecords/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create([Bind(Include = "name,address,dateOfBirth,height,weight,bloodGroup,bedID,treatmentArea,geographicalUnit")] PatientRecord patientRecord)
+        public ActionResult Create([Bind(Include = "Name,Address,Date Of Birth,Height,Weight,Blood Group,bedID,Treatment Area,Geographical Unit")] PatientRecord patientRecord)
         {
             if (ModelState.IsValid)
             {
@@ -99,6 +99,38 @@ namespace Group17_iCAREAPP.Controllers
             );
 
             return View(patientRecord);
+        }
+        public ActionResult Details(string id)
+        {
+            try
+            {
+                var patient = db.PatientRecord
+                    .Include("DocumentMetadata")
+                    .Include("TreatmentRecord")
+                    .FirstOrDefault(p => p.ID == id);
+
+                if (patient == null)
+                {
+                    TempData["Error"] = "Patient not found.";
+                    return RedirectToAction("Index", "Home");
+                }
+
+                return View(patient);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Error loading patient details.";
+                return RedirectToAction("Index", "Home");
+            }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                db.Dispose();
+            }
+            base.Dispose(disposing);
         }
     }
 }

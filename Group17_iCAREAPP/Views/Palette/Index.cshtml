@@ -32,27 +32,23 @@
         </div>
     }
 
-    <div class="document-grid">
-        @foreach (var doc in Model.Documents)
-        {
-            <div class="document-tile">
-                @using (Html.BeginForm("SelectDocument", "Palette", FormMethod.Post))
-                {
-                    @Html.Hidden("docId", doc.docID)
-                    <button type="submit" class="btn btn-document">
-                        <div class="doc-icon">
-                            <i class="fas fa-file"></i>
-                        </div>
-                        <div class="doc-info">
-                            <h4>@doc.docName</h4>
-                            <p>Created: @doc.dateOfCreation.ToShortDateString()</p>
-                            <p>Version: @doc.version</p>
-                        </div>
-                    </button>
-                }
+<div class="document-grid">
+    @foreach (var doc in Model.Documents)
+    {
+        <div class="document-tile">
+            @* Replace the form with a link to document details *@
+            <div class="doc-icon">
+                <i class="fas fa-file"></i>
             </div>
-        }
-    </div>
+            <div class="doc-info">
+                <h4>@doc.docName</h4>
+                <p>Created: @doc.dateOfCreation.ToShortDateString()</p>
+                <p>Version: @doc.version</p>
+                @Html.ActionLink("View Details", "Details", "Document", new { id = doc.docID }, new { @class = "btn btn-sm btn-primary mt-2" })
+            </div>
+        </div>
+    }
+</div>
 
     @if (Model.TotalPages > 1)
     {

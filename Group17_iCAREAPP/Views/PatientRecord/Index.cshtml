@@ -17,23 +17,13 @@
         <table class="table table-striped" id="patientRecordsTable">
             <thead>
                 <tr>
-                    <th>
-                        @Html.DisplayNameFor(model => model.name)
-                    </th>
-                    <th>
-                        @Html.DisplayNameFor(model => model.dateOfBirth)
-                    </th>
-                    <th>
-                        @Html.DisplayNameFor(model => model.bloodGroup)
-                    </th>
-                    <th>
-                        @Html.DisplayNameFor(model => model.treatmentArea)
-                    </th>
-                    <th>
-                        @Html.DisplayNameFor(model => model.bedID)
-                    </th>
-                    <th>Last Modified By</th>
-                    <th>Actions</th>
+                    <th> Name </th>
+                    <th> Date of Birth </th>
+                    <th> Blood Type </th>
+                    <th> Treatment Area </th>
+                    <th> Bed ID </th>
+                    <th> Last Modified By </th>
+                    <th> Actions </th>
                 </tr>
             </thead>
             <tbody>
@@ -79,6 +69,15 @@
     <script>
         $(document).ready(function () {
             $('#patientRecordsTable').DataTable({
+                columns: [
+                    { title: "Name" },
+                    { title: "Date of Birth" },
+                    { title: "Blood Type" },
+                    { title: "Treatment Area" },
+                    { title: "Bed ID" },
+                    { title: "Last Modified By" },
+                    { title: "Actions" }, ,
+                ],
                 "ordering": true,
                 "paging": true,
                 "searching": true,
