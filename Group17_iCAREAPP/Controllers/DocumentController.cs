@@ -16,6 +16,7 @@ namespace Group17_iCAREAPP.Controllers
     {
         private readonly Group17_iCAREDBEntities db = new Group17_iCAREDBEntities();
 
+        // In DocumentController.cs
         public ActionResult Create(string patientId)
         {
             try
@@ -42,14 +43,31 @@ namespace Group17_iCAREAPP.Controllers
                     return RedirectToAction("Index", "Home");
                 }
 
+                // Get all drugs from database
+                var drugs = db.DrugsDictionary
+                    .OrderBy(d => d.name)
+                    .Select(d => new SelectListItem
+                    {
+                        Text = d.name,
+                        Value = d.name
+                    })
+                    .ToList();
+
                 var viewModel = new CreateDocumentViewModel
                 {
                     PatientID = patientId,
                     PatientName = patient.name,
                     TreatmentArea = patient.treatmentArea,
                     BedID = patient.bedID,
-                    IsDoctor = worker.UserRole.ID == "DR001"
+                    IsDoctor = worker.UserRole.ID == "DR001",
+                    DrugsList = drugs  // Add this to your ViewModel
                 };
+
+                System.Diagnostics.Debug.WriteLine($"Number of drugs loaded: {drugs.Count}");
+                foreach (var drug in drugs.Take(5))
+                {
+                    System.Diagnostics.Debug.WriteLine($"Drug: {drug.Text}");
+                }
 
                 return View(viewModel);
             }

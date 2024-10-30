@@ -45,7 +45,7 @@
                     <i class="fas fa-file-pdf me-2"></i>View Document
                 </a>
                 @* Only show edit button for non-uploaded documents *@
-                @if (!Model.docName.StartsWith("Uploaded:"))
+                @if (!Model.docName.StartsWith("Uploaded:") && !Model.docName.StartsWith("Prescription"))
                 {
                     <a href="@Url.Action("Edit", new { id = Model.docID })" class="btn btn-warning">
                         <i class="fas fa-edit me-2"></i>Edit Document

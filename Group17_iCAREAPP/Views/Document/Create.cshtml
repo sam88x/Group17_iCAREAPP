@@ -21,49 +21,50 @@
         </div>
 
         <!-- File Upload Section -->
-        @using (Html.BeginForm("UploadFile", "Document", FormMethod.Post, new { enctype = "multipart/form-data", id = "uploadForm" }))
-        {
-            @Html.AntiForgeryToken()
-            @Html.HiddenFor(m => m.PatientID)
-            <div class="row align-items-end">
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label class="form-label">Select File</label>
-                        <input type="file" id="fileUpload" name="file" class="form-control"
-                               accept=".pdf,.jpg,.jpeg,.png,.gif" />
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label class="form-label">Document Title</label>
-                        <input type="text" id="uploadTitle" name="documentTitle" class="form-control" />
-                    </div>
-                </div>
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-success w-100">
-                        <i class="fas fa-upload me-2"></i>Upload
-                    </button>
-                </div>
-            </div>
-        }
-
-        <!-- File Preview Section -->
-        <div id="filePreviewSection" class="mt-3" style="display: none;">
-            <div class="card">
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col">
-                            <p id="fileName" class="mb-1"></p>
-                            <p id="fileSize" class="text-muted small"></p>
+        <div class="card-body border-bottom">
+            @using (Html.BeginForm("UploadFile", "Document", FormMethod.Post, new { enctype = "multipart/form-data", id = "uploadForm" }))
+            {
+                @Html.AntiForgeryToken()
+                @Html.HiddenFor(m => m.PatientID)
+                <div class="row align-items-end">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label">Select File</label>
+                            <input type="file" id="fileUpload" name="file" class="form-control"
+                                   accept=".pdf,.jpg,.jpeg,.png,.gif" />
                         </div>
                     </div>
-                    <div id="imagePreview" class="mt-2" style="display: none;">
-                        <img id="previewImg" src="#" alt="Preview" style="max-width: 100%; max-height: 200px;" />
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="form-label">Document Title</label>
+                            <input type="text" id="uploadTitle" name="documentTitle" class="form-control" />
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="fas fa-upload me-2"></i>Upload
+                        </button>
+                    </div>
+                </div>
+            }
+
+            <!-- File Preview Section -->
+            <div id="filePreviewSection" class="mt-3" style="display: none;">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col">
+                                <p id="fileName" class="mb-1"></p>
+                                <p id="fileSize" class="text-muted small"></p>
+                            </div>
+                        </div>
+                        <div id="imagePreview" class="mt-2" style="display: none;">
+                            <img id="previewImg" src="#" alt="Preview" style="max-width: 100%; max-height: 200px;" />
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
         <!-- Document Creation Section -->
         <div class="card-body">
@@ -100,7 +101,18 @@
 
                 <div class="form-group mb-3">
                     @Html.LabelFor(m => m.DocumentTitle, new { @class = "form-label" })
-                    @Html.TextBoxFor(m => m.DocumentTitle, new { @class = "form-control" })
+                    <div id="standardTitleInput">
+                        @Html.TextBoxFor(m => m.DocumentTitle, new { @class = "form-control" })
+                    </div>
+                    <div id="prescriptionTitleSelect" style="display:none; position: relative;">
+                        <select id="prescriptionTitle" class="form-control">
+                            <option></option>
+                            @foreach (var drug in Model.DrugsList)
+                            {
+                                <option value="@drug.Value">@drug.Text</option>
+                            }
+                        </select>
+                    </div>
                     @Html.ValidationMessageFor(m => m.DocumentTitle, "", new { @class = "text-danger" })
                 </div>
 
@@ -130,26 +142,65 @@
     </div>
 </div>
 
+
 @section Scripts {
+    <style>
+        /* Select2 Custom Styling */
+        .select2-container {
+            width: 100% !important;
+        }
+
+            .select2-container .select2-selection--single {
+                height: 38px !important;
+                padding: 5px !important;
+                border: 1px solid #ced4da;
+                border-radius: 0.25rem;
+            }
+
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: 28px !important;
+            padding-left: 8px;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 36px !important;
+        }
+
+        .select2-container--default .select2-results__option--highlighted[aria-selected] {
+            background-color: #0d6efd;
+        }
+
+        .suggestion-item:hover {
+            background-color: #f8f9fa;
+            cursor: pointer;
+        }
+    </style>
+
     <script>
         $(document).ready(function () {
+            // Initialize Select2
+            $('#prescriptionTitle').select2({
+                placeholder: "Search for a drug...",
+                allowClear: true,
+                width: '100%',
+                dropdownParent: $('#prescriptionTitleSelect'),
+                theme: "bootstrap-5",
+                minimumInputLength: 1,
+                selectionCssClass: "form-control"
+            });
+
             // File upload handling
             $('#fileUpload').change(function () {
                 var file = this.files[0];
                 if (file) {
-                    // Show the preview section
                     $('#filePreviewSection').show();
-
-                    // Update file info
                     $('#fileName').text('Selected File: ' + file.name);
                     $('#fileSize').text('Size: ' + formatFileSize(file.size));
 
-                    // Set default title if empty
                     if (!$('#uploadTitle').val()) {
                         $('#uploadTitle').val(file.name.split('.')[0]);
                     }
 
-                    // Show image preview if it's an image
                     if (file.type.startsWith('image/')) {
                         var reader = new FileReader();
                         reader.onload = function (e) {
@@ -163,44 +214,60 @@
                 }
             });
 
-            // Upload form handling
-            $('#uploadForm').submit(function (e) {
-                e.preventDefault();
+            // Document type change handler
+            $('#documentType').change(function () {
+                console.log('Document type changed to:', $(this).val());
+                var docType = $(this).val();
+                if (docType === 'Prescription') {
+                    $('#standardTitleInput').hide();
+                    $('#prescriptionTitleSelect').show();
+                    $('#drugSuggestions').removeClass('d-none');
 
-                var formData = new FormData(this);
-
-                $.ajax({
-                    url: $(this).attr('action'),
-                    type: 'POST',
-                    data: formData,
-                    processData: false,
-                    contentType: false,
-                    success: function (response) {
-                        if (response.success) {
-                            window.location.href = response.redirectUrl;
-                        } else {
-                            alert('Upload failed: ' + response.message);
-                        }
-                    },
-                    error: function (xhr, status, error) {
-                        console.error('Upload error:', error);
-                        console.error('Status:', status);
-                        console.error('Response:', xhr.responseText);
-                        alert('Upload failed. Please try again.');
-                    }
-                });
+                    // Reinitialize Select2
+                    $('#prescriptionTitle').select2('destroy').select2({
+                        placeholder: "Search for a drug...",
+                        allowClear: true,
+                        width: '100%',
+                        dropdownParent: $('#prescriptionTitleSelect'),
+                        theme: "bootstrap-5",
+                        minimumInputLength: 1,
+                        selectionCssClass: "form-control"
+                    });
+                } else {
+                    $('#standardTitleInput').show();
+                    $('#prescriptionTitleSelect').hide();
+                    $('#drugSuggestions').addClass('d-none');
+                    $('#DocumentTitle').val('');
+                }
             });
 
-            // Drug suggestions handling
+            // Prescription title selection handler
+            $('#prescriptionTitle').on('select2:select', function (e) {
+                var selectedDrug = e.params.data.text;
+                var currentDate = new Date();
+                var formattedDate = currentDate.toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit'
+                }).replace(/\//g, '-');
+
+                var prescriptionTitle = 'Prescription for ' + selectedDrug + ' (' + formattedDate + ')';
+                $('#DocumentTitle').val(prescriptionTitle);
+                console.log('Set document title to:', prescriptionTitle);
+            });
+
+            // Clear title when prescription is cleared
+            $('#prescriptionTitle').on('select2:clear', function () {
+                $('#DocumentTitle').val('');
+                console.log('Cleared document title');
+            });
+
+            // Drug suggestions
             var typingTimer;
             var doneTypingInterval = 300;
 
-            function shouldShowDrugSuggestions() {
-                return $('#documentType').val() === 'Prescription';
-            }
-
             $('#documentContent').on('input', function () {
-                if (shouldShowDrugSuggestions()) {
+                if ($('#documentType').val() === 'Prescription') {
                     clearTimeout(typingTimer);
                     var text = $(this).val();
                     var words = text.split(/\s+/);
@@ -216,20 +283,14 @@
                 }
             });
 
-            $('#documentType').change(function () {
-                if (!shouldShowDrugSuggestions()) {
-                    $('#drugSuggestions').addClass('d-none');
-                }
-            });
-
             function getDrugSuggestions(term) {
                 $.get('/Document/GetDrugSuggestions', { term: term }, function (data) {
                     if (data && data.length > 0) {
                         var html = '';
                         data.forEach(function (drug) {
                             html += `<div class="suggestion-item" style="cursor: pointer; padding: 5px;">
-                                            ${drug.name}
-                                        </div>`;
+                                    ${drug.name}
+                                </div>`;
                         });
                         $('#suggestionsList').html(html);
                         $('#drugSuggestions').removeClass('d-none');
@@ -239,6 +300,7 @@
                 });
             }
 
+            // Handle suggestion item clicks
             $(document).on('click', '.suggestion-item', function () {
                 var text = $('#documentContent').val();
                 var words = text.split(/\s+/);
@@ -246,7 +308,26 @@
                 words.push($(this).text().trim());
                 $('#documentContent').val(words.join(' ') + ' ');
                 $('#drugSuggestions').addClass('d-none');
+                console.log('Added drug suggestion:', $(this).text().trim());
             });
+
+            // Form validation
+            $('form.needs-validation').on('submit', function (event) {
+                if (!$('#DocumentTitle').val()) {
+                    event.preventDefault();
+                    alert('Please provide a document title');
+                    return false;
+                }
+                if (!$('#documentContent').val()) {
+                    event.preventDefault();
+                    alert('Please provide document content');
+                    return false;
+                }
+                return true;
+            });
+
+            // Trigger initial state
+            $('#documentType').trigger('change');
         });
 
         function formatFileSize(bytes) {
