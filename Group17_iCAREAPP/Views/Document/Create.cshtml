@@ -4,7 +4,7 @@
 <div class="container mt-4">
     <div class="card">
         <div class="card-header">
-            <h3>Create New Document</h3>
+            <h3>Document Management</h3>
             <div class="text-muted">
                 <div class="row">
                     <div class="col-md-4">
@@ -19,7 +19,55 @@
                 </div>
             </div>
         </div>
+
+        <!-- File Upload Section -->
+        @using (Html.BeginForm("UploadFile", "Document", FormMethod.Post, new { enctype = "multipart/form-data", id = "uploadForm" }))
+        {
+            @Html.AntiForgeryToken()
+            @Html.HiddenFor(m => m.PatientID)
+            <div class="row align-items-end">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="form-label">Select File</label>
+                        <input type="file" id="fileUpload" name="file" class="form-control"
+                               accept=".pdf,.jpg,.jpeg,.png,.gif" />
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label class="form-label">Document Title</label>
+                        <input type="text" id="uploadTitle" name="documentTitle" class="form-control" />
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-success w-100">
+                        <i class="fas fa-upload me-2"></i>Upload
+                    </button>
+                </div>
+            </div>
+        }
+
+        <!-- File Preview Section -->
+        <div id="filePreviewSection" class="mt-3" style="display: none;">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col">
+                            <p id="fileName" class="mb-1"></p>
+                            <p id="fileSize" class="text-muted small"></p>
+                        </div>
+                    </div>
+                    <div id="imagePreview" class="mt-2" style="display: none;">
+                        <img id="previewImg" src="#" alt="Preview" style="max-width: 100%; max-height: 200px;" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+        <!-- Document Creation Section -->
         <div class="card-body">
+            <h4>Create Document</h4>
             @using (Html.BeginForm("Create", "Document", FormMethod.Post, new { @class = "needs-validation" }))
             {
                 @Html.AntiForgeryToken()
@@ -60,19 +108,21 @@
                     @Html.LabelFor(m => m.Content, new { @class = "form-label" })
                     @Html.TextAreaFor(m => m.Content, new { @class = "form-control", rows = "10", id = "documentContent" })
                     @Html.ValidationMessageFor(m => m.Content, "", new { @class = "text-danger" })
-                </div>
 
-                <div id="drugSuggestions" class="mb-3 d-none">
-                    <div class="card">
-                        <div class="card-body">
-                            <h6>Drug Suggestions</h6>
-                            <div id="suggestionsList"></div>
+                    <div id="drugSuggestions" class="mb-3 d-none">
+                        <div class="card">
+                            <div class="card-body">
+                                <h6>Drug Suggestions</h6>
+                                <div id="suggestionsList"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <button type="submit" class="btn btn-primary">Create Document</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-file-alt me-2"></i>Create Document
+                    </button>
                     @Html.ActionLink("Cancel", "Details", "PatientRecord", new { id = Model.PatientID }, new { @class = "btn btn-secondary" })
                 </div>
             }
@@ -81,66 +131,130 @@
 </div>
 
 @section Scripts {
-    @if (Model.IsDoctor)
-    {
-        <script>
-            $(document).ready(function () {
-                var typingTimer;
-                var doneTypingInterval = 300;
+    <script>
+        $(document).ready(function () {
+            // File upload handling
+            $('#fileUpload').change(function () {
+                var file = this.files[0];
+                if (file) {
+                    // Show the preview section
+                    $('#filePreviewSection').show();
 
-                function shouldShowDrugSuggestions() {
-                    return $('#documentType').val() === 'Prescription';
+                    // Update file info
+                    $('#fileName').text('Selected File: ' + file.name);
+                    $('#fileSize').text('Size: ' + formatFileSize(file.size));
+
+                    // Set default title if empty
+                    if (!$('#uploadTitle').val()) {
+                        $('#uploadTitle').val(file.name.split('.')[0]);
+                    }
+
+                    // Show image preview if it's an image
+                    if (file.type.startsWith('image/')) {
+                        var reader = new FileReader();
+                        reader.onload = function (e) {
+                            $('#previewImg').attr('src', e.target.result);
+                            $('#imagePreview').show();
+                        };
+                        reader.readAsDataURL(file);
+                    } else {
+                        $('#imagePreview').hide();
+                    }
                 }
+            });
 
-                $('#documentContent').on('input', function () {
-                    if (shouldShowDrugSuggestions()) {
-                        clearTimeout(typingTimer);
-                        var text = $(this).val();
-                        var words = text.split(/\s+/);
-                        var lastWord = words[words.length - 1];
+            // Upload form handling
+            $('#uploadForm').submit(function (e) {
+                e.preventDefault();
 
-                        if (lastWord.length > 2) {
-                            typingTimer = setTimeout(function () {
-                                getDrugSuggestions(lastWord);
-                            }, doneTypingInterval);
+                var formData = new FormData(this);
+
+                $.ajax({
+                    url: $(this).attr('action'),
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function (response) {
+                        if (response.success) {
+                            window.location.href = response.redirectUrl;
                         } else {
-                            $('#drugSuggestions').addClass('d-none');
+                            alert('Upload failed: ' + response.message);
                         }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Upload error:', error);
+                        console.error('Status:', status);
+                        console.error('Response:', xhr.responseText);
+                        alert('Upload failed. Please try again.');
                     }
                 });
+            });
 
-                $('#documentType').change(function () {
-                    if (!shouldShowDrugSuggestions()) {
+            // Drug suggestions handling
+            var typingTimer;
+            var doneTypingInterval = 300;
+
+            function shouldShowDrugSuggestions() {
+                return $('#documentType').val() === 'Prescription';
+            }
+
+            $('#documentContent').on('input', function () {
+                if (shouldShowDrugSuggestions()) {
+                    clearTimeout(typingTimer);
+                    var text = $(this).val();
+                    var words = text.split(/\s+/);
+                    var lastWord = words[words.length - 1];
+
+                    if (lastWord.length > 2) {
+                        typingTimer = setTimeout(function () {
+                            getDrugSuggestions(lastWord);
+                        }, doneTypingInterval);
+                    } else {
+                        $('#drugSuggestions').addClass('d-none');
+                    }
+                }
+            });
+
+            $('#documentType').change(function () {
+                if (!shouldShowDrugSuggestions()) {
+                    $('#drugSuggestions').addClass('d-none');
+                }
+            });
+
+            function getDrugSuggestions(term) {
+                $.get('/Document/GetDrugSuggestions', { term: term }, function (data) {
+                    if (data && data.length > 0) {
+                        var html = '';
+                        data.forEach(function (drug) {
+                            html += `<div class="suggestion-item" style="cursor: pointer; padding: 5px;">
+                                            ${drug.name}
+                                        </div>`;
+                        });
+                        $('#suggestionsList').html(html);
+                        $('#drugSuggestions').removeClass('d-none');
+                    } else {
                         $('#drugSuggestions').addClass('d-none');
                     }
                 });
+            }
 
-                function getDrugSuggestions(term) {
-                    $.get('/Document/GetDrugSuggestions', { term: term }, function (data) {
-                        if (data && data.length > 0) {
-                            var html = '';
-                            data.forEach(function (drug) {
-                                html += `<div class="suggestion-item" style="cursor: pointer; padding: 5px;">
-                                            ${drug.name}
-                                        </div>`;
-                            });
-                            $('#suggestionsList').html(html);
-                            $('#drugSuggestions').removeClass('d-none');
-                        } else {
-                            $('#drugSuggestions').addClass('d-none');
-                        }
-                    });
-                }
-
-                $(document).on('click', '.suggestion-item', function () {
-                    var text = $('#documentContent').val();
-                    var words = text.split(/\s+/);
-                    words.pop();
-                    words.push($(this).text().trim());
-                    $('#documentContent').val(words.join(' ') + ' ');
-                    $('#drugSuggestions').addClass('d-none');
-                });
+            $(document).on('click', '.suggestion-item', function () {
+                var text = $('#documentContent').val();
+                var words = text.split(/\s+/);
+                words.pop();
+                words.push($(this).text().trim());
+                $('#documentContent').val(words.join(' ') + ' ');
+                $('#drugSuggestions').addClass('d-none');
             });
-        </script>
-    }
+        });
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+    </script>
 }

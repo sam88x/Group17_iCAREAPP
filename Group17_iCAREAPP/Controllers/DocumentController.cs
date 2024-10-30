@@ -101,8 +101,67 @@ namespace Group17_iCAREAPP.Controllers
                     patientID = model.PatientID
                 };
 
-                // Generate and save PDF
-                var pdfPath = GeneratePDF(model, worker, docMeta.docID);
+                if (model.DocumentType == "Image" && model.ImageFile != null)
+                {
+                    // Generate PDF from image
+                    var fileName = $"Doc_{docMeta.docID}_v{docMeta.version}.pdf";
+                    var filePath = Path.Combine(Server.MapPath("~/App_Data/Documents"), fileName);
+
+                    using (var doc = new Document())
+                    {
+                        PdfWriter.GetInstance(doc, new FileStream(filePath, FileMode.Create));
+                        doc.Open();
+
+                        // Add metadata
+                        doc.AddAuthor(worker.iCAREUser.name);
+                        doc.AddCreationDate();
+                        doc.AddTitle(docMeta.docName);
+                        doc.AddSubject("Image Document");
+
+                        // Add header (reuse your existing header formatting)
+                        var titleFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 16);
+                        var headerFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 12);
+                        var contentFont = FontFactory.GetFont(FontFactory.HELVETICA, 12);
+
+                        doc.Add(new Paragraph(docMeta.docName, titleFont));
+                        doc.Add(new Paragraph($"Date: {DateTime.Now:yyyy-MM-dd HH:mm:ss}", contentFont));
+                        doc.Add(new Paragraph($"Author: {worker.iCAREUser.name} ({worker.profession})", contentFont));
+                        doc.Add(new Paragraph($"Patient: {model.PatientName} (ID: {model.PatientID})", contentFont));
+
+                        if (!string.IsNullOrEmpty(model.TreatmentArea))
+                        {
+                            doc.Add(new Paragraph($"Treatment Area: {model.TreatmentArea}", contentFont));
+                        }
+
+                        doc.Add(new Paragraph(new string('_', 90)));
+                        doc.Add(new Paragraph("\n"));
+
+                        // Add the image
+                        var image = iTextSharp.text.Image.GetInstance(model.ImageFile.InputStream);
+
+                        // Scale image to fit page
+                        float maxWidth = doc.PageSize.Width - doc.LeftMargin - doc.RightMargin;
+                        float maxHeight = doc.PageSize.Height - doc.TopMargin - doc.BottomMargin;
+                        if (image.Width > maxWidth || image.Height > maxHeight)
+                        {
+                            float scale = Math.Min(maxWidth / image.Width, maxHeight / image.Height);
+                            image.ScalePercent(scale * 100);
+                        }
+
+                        // Center the image
+                        image.Alignment = Element.ALIGN_CENTER;
+                        doc.Add(image);
+
+                        doc.Close();
+                    }
+                }
+                else
+                {
+                    // Generate normal PDF document
+                    var fileName = $"Doc_{docMeta.docID}_v{docMeta.version}.pdf";
+                    var filePath = Path.Combine(Server.MapPath("~/App_Data/Documents"), fileName);
+                    GeneratePDF(model, worker, docMeta, filePath);
+                }
 
                 db.DocumentMetadata.Add(docMeta);
                 db.SaveChanges();
@@ -112,7 +171,7 @@ namespace Group17_iCAREAPP.Controllers
             }
             catch (Exception ex)
             {
-                TempData["Error"] = "Error creating document.";
+                TempData["Error"] = "Error creating document: " + ex.Message;
                 return View(model);
             }
         }
@@ -175,7 +234,7 @@ namespace Group17_iCAREAPP.Controllers
             }
         }
 
-        private string GeneratePDF(object model, iCAREWorker worker, string filePath)
+        private string GeneratePDF(object model, iCAREWorker worker, DocumentMetadata doc123, string filePath)
         {
             string content;
             string title;
@@ -243,7 +302,7 @@ namespace Group17_iCAREAPP.Controllers
                         originalInfo.Add(new Chunk($"Original Document Title: {title}\n", greyFont));
                         originalInfo.Add(new Chunk($"Created by: {worker.iCAREUser.name}\n", greyFont));
                         originalInfo.Add(new Chunk($"Document Type: {documentType}\n", greyFont));
-                        //originalInfo.Add(new Chunk($"Created on:" {}))
+                        originalInfo.Add(new Chunk($"Created on: {doc123.dateOfCreation:yyyy-MM-dd}\n", greyFont));
                         originalInfo.Add(new Chunk($"Last Modified: {DateTime.Now:yyyy-MM-dd HH:mm:ss}\n", greyFont));
                         originalInfo.Add(new Chunk($"Modified by: {worker.iCAREUser.name}\n", greyFont));
                         doc.Add(originalInfo);
@@ -265,7 +324,7 @@ namespace Group17_iCAREAPP.Controllers
                             doc.Add(new Paragraph($"Treatment Area: {treatmentArea}", contentFont));
                         }
 
-                        doc.Add(new Paragraph(new string('_', 90)));
+                        doc.Add(new Paragraph(new string('_', 80)));
                         doc.Add(new Paragraph("\n"));
                     }
 
@@ -292,7 +351,7 @@ namespace Group17_iCAREAPP.Controllers
                     if (isEditMode)
                     {
                         doc.Add(new Paragraph("\n"));
-                        doc.Add(new Paragraph(new string('_', 90)));
+                        doc.Add(new Paragraph(new string('_', 80)));
                         var editInfo = new Paragraph($"Edited by {worker.iCAREUser.name} on {DateTime.Now:yyyy-MM-dd HH:mm:ss}", greyFont);
                         editInfo.Alignment = Element.ALIGN_RIGHT;
                         doc.Add(editInfo);
@@ -324,11 +383,19 @@ namespace Group17_iCAREAPP.Controllers
                     return RedirectToAction("Index", "MyBoard");
                 }
 
-                // Get the latest version number
-                var version = document.version ?? 1;
+                // Construct filename - for uploaded files, don't use version number
+                string fileName;
+                if (document.docName.StartsWith("Uploaded:"))  // Add this prefix when uploading files
+                {
+                    fileName = $"Doc_{document.docID}.pdf";
+                }
+                else
+                {
+                    // For regular documents, use version
+                    var version = document.version ?? 1;
+                    fileName = $"Doc_{document.docID}_v{version}.pdf";
+                }
 
-                // Construct filename with version
-                var fileName = $"Doc_{document.docID}_v{version}.pdf";
                 var filePath = Path.Combine(Server.MapPath("~/App_Data/Documents"), fileName);
 
                 if (!System.IO.File.Exists(filePath))
@@ -338,7 +405,7 @@ namespace Group17_iCAREAPP.Controllers
                 }
 
                 // Return the PDF file with inline content disposition
-                return File(filePath, "application/pdf");  // Removed the filename parameter
+                return File(filePath, "application/pdf");
             }
             catch (Exception ex)
             {
@@ -482,8 +549,7 @@ namespace Group17_iCAREAPP.Controllers
                     // Generate new PDF version
                     var fileName = $"Doc_{document.docID}_v{document.version}.pdf";
                     var filePath = Path.Combine(Server.MapPath("~/App_Data/Documents"), fileName);
-
-                    GeneratePDF(model, worker, filePath);
+                    GeneratePDF(model, worker, document, filePath);
 
                     // Save all changes
                     db.SaveChanges();
@@ -547,7 +613,145 @@ namespace Group17_iCAREAPP.Controllers
                 return "Prescription";
             return "General";
         }
-    protected override void Dispose(bool disposing)
+
+        [HttpPost]
+        public ActionResult UploadFile()
+        {
+            try
+            {
+                // Debug logging
+                System.Diagnostics.Debug.WriteLine("Starting file upload...");
+
+                var file = Request.Files["file"];
+                var patientId = Request["PatientID"];
+                var documentTitle = Request["documentTitle"];
+
+                // Log received data
+                System.Diagnostics.Debug.WriteLine($"PatientID: {patientId}");
+                System.Diagnostics.Debug.WriteLine($"Document Title: {documentTitle}");
+                System.Diagnostics.Debug.WriteLine($"File present: {(file != null)}");
+                if (file != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"File size: {file.ContentLength}");
+                    System.Diagnostics.Debug.WriteLine($"File type: {file.ContentType}");
+                }
+
+                if (file == null || file.ContentLength == 0)
+                {
+                    return Json(new { success = false, message = "No file was selected." });
+                }
+
+                if (string.IsNullOrEmpty(patientId))
+                {
+                    return Json(new { success = false, message = "Patient ID is required." });
+                }
+
+                if (string.IsNullOrEmpty(documentTitle))
+                {
+                    documentTitle = Path.GetFileNameWithoutExtension(file.FileName);
+                }
+
+                documentTitle = "Uploaded: " + documentTitle;
+
+                var currentUser = User.Identity.Name;
+                System.Diagnostics.Debug.WriteLine($"Current User: {currentUser}");
+
+                var worker = db.iCAREWorker
+                    .Include("iCAREUser")
+                    .FirstOrDefault(w => w.iCAREUser.UserPassword.userName == currentUser);
+
+                if (worker == null)
+                {
+                    return Json(new { success = false, message = "Worker profile not found." });
+                }
+
+                System.Diagnostics.Debug.WriteLine($"Worker found: {worker.ID}");
+
+                // Create document metadata
+                var docMeta = new DocumentMetadata
+                {
+                    docID = Guid.NewGuid().ToString(),
+                    docName = documentTitle,
+                    dateOfCreation = DateTime.Now,
+                    version = 1,
+                    userID = worker.ID,
+                    patientID = patientId
+                };
+
+                // Ensure the Documents directory exists
+                var documentsPath = Server.MapPath("~/App_Data/Documents");
+                if (!Directory.Exists(documentsPath))
+                {
+                    System.Diagnostics.Debug.WriteLine($"Creating directory: {documentsPath}");
+                    Directory.CreateDirectory(documentsPath);
+                }
+
+                var fileName = $"Doc_{docMeta.docID}.pdf";
+                var filePath = Path.Combine(documentsPath, fileName);
+
+                System.Diagnostics.Debug.WriteLine($"Saving file to: {filePath}");
+
+                try
+                {
+                    if (file.ContentType.StartsWith("image/"))
+                    {
+                        System.Diagnostics.Debug.WriteLine("Converting image to PDF...");
+                        using (var doc = new Document())
+                        {
+                            PdfWriter.GetInstance(doc, new FileStream(filePath, FileMode.Create));
+                            doc.Open();
+
+                            var image = iTextSharp.text.Image.GetInstance(file.InputStream);
+
+                            float maxWidth = doc.PageSize.Width - doc.LeftMargin - doc.RightMargin;
+                            float maxHeight = doc.PageSize.Height - doc.TopMargin - doc.BottomMargin;
+                            if (image.Width > maxWidth || image.Height > maxHeight)
+                            {
+                                float scale = Math.Min(maxWidth / image.Width, maxHeight / image.Height);
+                                image.ScalePercent(scale * 100);
+                            }
+
+                            image.Alignment = Element.ALIGN_CENTER;
+                            doc.Add(image);
+                            doc.Close();
+                        }
+                    }
+                    else if (file.ContentType.Equals("application/pdf"))
+                    {
+                        System.Diagnostics.Debug.WriteLine("Saving PDF directly...");
+                        file.SaveAs(filePath);
+                    }
+                    else
+                    {
+                        return Json(new { success = false, message = $"Unsupported file type: {file.ContentType}" });
+                    }
+
+                    System.Diagnostics.Debug.WriteLine("Saving to database...");
+                    db.DocumentMetadata.Add(docMeta);
+                    db.SaveChanges();
+
+                    System.Diagnostics.Debug.WriteLine("Upload complete!");
+                    return Json(new
+                    {
+                        success = true,
+                        redirectUrl = Url.Action("Details", "PatientRecord", new { id = patientId })
+                    });
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Error saving file: {ex.Message}");
+                    System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
+                    return Json(new { success = false, message = $"Error saving file: {ex.Message}" });
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Upload error: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
+                return Json(new { success = false, message = $"Upload error: {ex.Message}" });
+            }
+        }
+        protected override void Dispose(bool disposing)
         {
             if (disposing)
             {

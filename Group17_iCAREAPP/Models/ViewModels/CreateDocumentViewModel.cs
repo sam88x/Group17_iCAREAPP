@@ -1,6 +1,7 @@
 ﻿// Models/ViewModels/CreateDocumentViewModel.cs
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.Web;
 
 namespace Group17_iCAREAPP.Models.ViewModels
 {
@@ -32,5 +33,10 @@ namespace Group17_iCAREAPP.Models.ViewModels
             DocumentType = "General";
             Content = string.Empty;
         }
+
+        [Display(Name = "Upload Image")]
+        public HttpPostedFileBase ImageFile { get; set; }
+
+        public bool IsImageUpload { get; set; }
     }
 }

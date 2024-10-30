@@ -42,12 +42,26 @@
 
             <div class="text-center mb-4">
                 <a href="@Url.Action("View", new { id = Model.docID })" class="btn btn-primary" target="_blank">
-                    <i class="fas fa-file-pdf me-2"></i>View Document (Version @Model.version)
+                    <i class="fas fa-file-pdf me-2"></i>View Document
                 </a>
-                <a href="@Url.Action("Edit", new { id = Model.docID })" class="btn btn-warning">
-                    <i class="fas fa-edit me-2"></i>Edit Document
-                </a>
+                @* Only show edit button for non-uploaded documents *@
+                @if (!Model.docName.StartsWith("Uploaded:"))
+                {
+                    <a href="@Url.Action("Edit", new { id = Model.docID })" class="btn btn-warning">
+                        <i class="fas fa-edit me-2"></i>Edit Document
+                    </a>
+                }
             </div>
+
+            @* Add an indicator for uploaded files *@
+            @if (Model.docName.StartsWith("Uploaded:"))
+            {
+                <div class="mt-2">
+                    <span class="badge bg-info">
+                        <i class="fas fa-upload me-1"></i>Uploaded File
+                    </span>
+                </div>
+            }
 
             @if (Model.ModificationHistory != null && Model.ModificationHistory.Any())
             {
