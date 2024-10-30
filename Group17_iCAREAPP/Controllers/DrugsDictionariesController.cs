@@ -12,7 +12,7 @@ namespace Group17_iCAREAPP.Controllers
 {
     public class DrugsDictionariesController : Controller
     {
-        private Group17_iCAREDBEntities1 db = new Group17_iCAREDBEntities1();
+        private Group17_iCAREDBEntities db = new Group17_iCAREDBEntities();
 
         // GET: DrugsDictionaries
         public ActionResult Index()
