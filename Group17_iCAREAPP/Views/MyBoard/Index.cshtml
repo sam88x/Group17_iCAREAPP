@@ -1,6 +1,30 @@
 ﻿
 @model Group17_iCAREAPP.Models.ViewModels.MyBoardViewModel
 
+<style>
+    .btn-space {
+        width: 10px; 
+        display: inline-block;
+    }
+
+    .btn-details {
+        background-color: #007bff;
+        color: white;
+        border-color: #007bff;
+    }
+
+    .btn-edit {
+        background-color: #28a745;
+        color: white;
+        border-color: #28a745;
+    }
+    .btn-add {
+        background-color: #17a2b8; 
+        color: white;
+        border-color: #17a2b8; 
+    }
+
+</style>
 <div class="container mt-4">
     <div class="card mb-4">
         <div class="card-body">
@@ -91,7 +115,20 @@
                                     Last treatment: @info.LastTreatment.treatmentDate.ToString("MMM dd, yyyy")
                                 </div>
                             }
-                            @Html.ActionLink("Patient Details", "Details", "PatientRecord", new { id = info.Patient.ID }, new { @class = "btn btn-primary btn-sm" })
+                            <div class="btn-group" role="group">
+                                @Html.ActionLink("Patient Details", "Details", "PatientRecord", new { id = info.Patient.ID }, new { @class = "btn btn-primary btn-sm btn-details" })
+                                <span class="btn-space"></span>
+                                @Html.ActionLink("Patient Edit", "Edit", "PatientRecord", new { id = info.Patient.ID }, new { @class = "btn btn-secondary btn-sm btn-edit" })
+                                <span class="btn-space"></span>
+                                @Html.ActionLink("Add Treatment", "AddTreatmentRecord", "TreatmentRecords", new { patientId = info.Patient.ID }, new { @class = "btn btn-success btn-sm btn-add" })
+                            </div>
+                            @if (TempData["SuccessMessage"] != null)
+                            {
+                                <div class="alert alert-success">
+                                    @TempData["SuccessMessage"]
+                                </div>
+                            }
+
                         </div>
                     </div>
                 </div>

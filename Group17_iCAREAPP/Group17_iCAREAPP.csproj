@@ -398,6 +398,7 @@
     <Content Include="Views\iCAREBoard\Index.cshtml" />
     <Content Include="Views\MyBoard\DisplayMyBoard.cshtml" />
     <Content Include="Views\MyBoard\Index.cshtml" />
+    <Content Include="Views\TreatmentRecords\AddTreatmentRecord.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
