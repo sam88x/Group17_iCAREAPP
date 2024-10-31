@@ -17,6 +17,7 @@ namespace Group17_iCAREAPP.Controllers
         {
             var patientRecords = db.PatientRecord
                 .Include(p => p.iCAREWorker)
+                .Include(p => p.iCAREWorker.iCAREUser)
                 .Include(p => p.GeoCodes)
                 .ToList();
             return View(patientRecords);
@@ -25,7 +26,6 @@ namespace Group17_iCAREAPP.Controllers
         // GET: PatientRecords/Create
         public ActionResult Create()
         {
-            // Updated to use correct property names from GeoCodes model
             ViewBag.geographicalUnit = new SelectList(db.GeoCodes, "ID", "description");
             return View();
         }
@@ -47,7 +47,6 @@ namespace Group17_iCAREAPP.Controllers
                 return RedirectToAction("Index");
             }
 
-            // Updated to use correct property names from GeoCodes model
             ViewBag.geographicalUnit = new SelectList(db.GeoCodes, "ID", "description", patientRecord.geographicalUnit);
             return View(patientRecord);
         }
@@ -98,7 +97,6 @@ namespace Group17_iCAREAPP.Controllers
                 return RedirectToAction("Index","MyBoard");
             }
 
-            // Updated to use correct property names from GeoCodes model
             ViewBag.geographicalUnit = new SelectList(db.GeoCodes, "ID", "description", patientRecord.geographicalUnit);
             ViewBag.BloodGroups = new SelectList(
                 new[] { "A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-" },
