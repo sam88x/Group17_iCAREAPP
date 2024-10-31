@@ -22,7 +22,6 @@ namespace Group17_iCAREAPP.Controllers
         }
 
 
-
         // GET: TreatmentRecords/Details/5
         public ActionResult Details(string id)
         {
@@ -44,6 +43,53 @@ namespace Group17_iCAREAPP.Controllers
             ViewBag.workerID = new SelectList(db.iCAREWorker, "ID", "profession");
             ViewBag.patientID = new SelectList(db.PatientRecord, "ID", "name");
             return View();
+        }
+
+        //Checking Assignability
+        [HttpPost]
+        public JsonResult CheckAssignability(string patientId)
+        {
+            var user = db.UserPassword.FirstOrDefault(u => u.userName == User.Identity.Name);
+            var workerID = user.ID;
+            var worker = db.iCAREWorker.FirstOrDefault(w => w.ID == workerID);
+            var roleName = "";
+            roleName = db.UserRole.FirstOrDefault(r => r.ID == worker.userPermission).roleName;
+
+            if (workerID != null)
+                ViewBag.workerId = workerID;
+            var patientRecord = db.PatientRecord.FirstOrDefault(p => p.ID.ToString() == patientId);
+            if (patientRecord == null)
+            {
+                return Json(new { success = false, message = "Patient not found." ,roleName = roleName});
+            }
+            bool isAssigned = db.TreatmentRecord.Any(t => t.workerID == worker.ID && t.patientID == patientRecord.ID);
+            bool canAssign = false;
+
+            var assignmentStatus = db.PatientAssignmentStatus
+                .FirstOrDefault(p => p.PatientRecordID == patientRecord.ID);
+
+            if (roleName == "Doctor")
+            {
+                if (assignmentStatus.AssignmentStatus != "Assigned" && assignmentStatus.NumOfNurses > 0)
+                    canAssign = true;
+            }
+            else if(roleName == "Nurse")
+            {
+                if (assignmentStatus == null || assignmentStatus.NumOfNurses < 3) ;
+                canAssign = true;
+            }
+
+            if(isAssigned)
+            {
+                return Json(new { success = false, message = "You already assigned.", roleName = roleName });
+            }
+            if(!canAssign)
+            {
+                return Json(new { success = false, message = "Unable to assign the patient.", roleName });
+            }
+
+            //Save Assign Status
+            return Json(new { success = true, message = "You can assign.", roleName = roleName});
         }
 
         public ActionResult AddTreatmentRecord(string patientId)
@@ -69,6 +115,8 @@ namespace Group17_iCAREAPP.Controllers
             return View();
         }
 
+
+
         // POST: TreatmentRecords/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to, for 
         // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
@@ -78,6 +126,7 @@ namespace Group17_iCAREAPP.Controllers
         {
             if (ModelState.IsValid)
             {
+
                 db.TreatmentRecord.Add(treatmentRecord);
                 db.SaveChanges();
                 return RedirectToAction("Index");
@@ -107,18 +156,56 @@ namespace Group17_iCAREAPP.Controllers
 
         }
 
+        private void assignNurse(string patientId)
+        {
+            var assignmentStatus = db.PatientAssignmentStatus
+                .FirstOrDefault(p => p.PatientRecordID == patientId);
+
+            if(assignmentStatus == null) // make new assignment
+            {
+                assignmentStatus = new PatientAssignmentStatus
+                {
+                    PatientRecordID = patientId,
+                    AssignmentStatus = "NurseAssigned",
+                    NumOfNurses = 1
+                };
+                db.PatientAssignmentStatus.Add(assignmentStatus);
+            }
+            else // modify assignment
+            {
+                assignmentStatus.NumOfNurses++;
+            }
+            db.SaveChanges();
+        }
+
+        private void assignDoctor(string patientId)
+        {
+            var assignmentStatus = db.PatientAssignmentStatus
+                .FirstOrDefault(p => p.PatientRecordID == patientId);
+
+            assignmentStatus.AssignmentStatus = "Assigned";
+            db.SaveChanges();
+        }
+
         [HttpPost]
         //[ValidateAntiForgeryToken]
-        public ActionResult AssignPatient([Bind(Include = "treatmentID,description,treatmentDate,patientID,workerID")] TreatmentRecord treatmentRecord)
+        public ActionResult AssignPatient([Bind(Include = "treatmentID,description,treatmentDate,patientID,workerID")] TreatmentRecord treatmentRecord, string roleName)
         {
             if (ModelState.IsValid)
             {
+                if(roleName == "Nurse")
+                {
+                    assignNurse(treatmentRecord.patientID);
+                }
+                else if(roleName == "Doctor")
+                {
+                    assignDoctor(treatmentRecord.patientID);
+                }
                 db.TreatmentRecord.Add(treatmentRecord);
                 db.SaveChanges();
                 //return RedirectToAction("Index");
                 return Json(new { success = true, message = "Assign succeeded" });
             }
-
 
             //return View(treatmentRecord);
             return Json(new { success = false, message = "Assign failed" });

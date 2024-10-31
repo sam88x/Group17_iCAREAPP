@@ -12,19 +12,12 @@ namespace Group17_iCAREAPP.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class GeoCodes
+    public partial class PatientAssignmentStatus
     {
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
-        public GeoCodes()
-        {
-            this.PatientRecord1 = new HashSet<PatientRecord>();
-        }
-    
-        public string ID { get; set; }
-        public string description { get; set; }
+        public string PatientRecordID { get; set; }
+        public string AssignmentStatus { get; set; }
+        public int NumOfNurses { get; set; }
     
         public virtual PatientRecord PatientRecord { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<PatientRecord> PatientRecord1 { get; set; }
     }
 }

@@ -1,4 +1,4 @@
-﻿// T4 code generation is enabled for model 'C:\Group17_iCAREAPP1\Group17_iCAREAPP\Models\Model1.edmx'. 
+﻿// T4 code generation is enabled for model 'C:\iCAREVS\Group17_iCAREAPP\Group17_iCAREAPP\Models\Model1.edmx'. 
 // To enable legacy code generation, change the value of the 'Code Generation Strategy' designer
 // property to 'Legacy ObjectContext'. This property is available in the Properties Window when the model
 // is open in the designer.

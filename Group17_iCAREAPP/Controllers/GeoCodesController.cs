@@ -40,6 +40,8 @@ namespace Group17_iCAREAPP.Controllers
             return View(patientRecords);
         }
 
+
+
         // GET: GeoCodes/Create
         public ActionResult Create()
         {
