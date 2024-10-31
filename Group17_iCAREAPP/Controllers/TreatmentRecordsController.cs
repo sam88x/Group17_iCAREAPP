@@ -156,6 +156,7 @@ namespace Group17_iCAREAPP.Controllers
 
         }
 
+
         private void assignNurse(string patientId)
         {
             var assignmentStatus = db.PatientAssignmentStatus
