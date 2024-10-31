@@ -4,34 +4,61 @@
     ViewBag.Title = "Index";
 }
 
-<h2>iCAREBoard</h2>
+<h2>iCARE Board</h2>
 
-<p>
-    @Html.ActionLink("Create New geo-Area", "Create")
-</p>
-<table class="table">
-    <tr>
-        <th>
-            @Html.DisplayNameFor(model => model.description)
-        </th>
-        <th></th>
-    </tr>
+<div class="card">
+    <div class="card-body">
+        <table class="table table-striped" id="iCAREBOARDTable">
+            <thead>
+                <tr>
+                    <th> Location </th>
+                    <th> Number of Patients </th>
+                    <th> Location ID </th>
+                    <th> Actions </th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.description)
+                        </td>
+                        <td>
+                            @item.PatientRecord1.Count
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.ID)
+                        </td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <a href="@Url.Action("Details", new { id = item.ID })" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-child"></i> View Patients
+                                </a>
+                                <a href="@Url.Action("Details", new { id = item.ID })" class="btn btn-sm btn-success">
+                                    <i class="fas fa-check-circle"></i> Assign
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
 
-
-    @foreach (var item in Model)
-    {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.description)
-            </td>
-            <td>
-                @Html.ActionLink("Edit", "Edit", new { id = item.ID }) |
-                @Html.ActionLink("Details", "Details", new { id = item.ID }) |
-                @Html.ActionLink("Delete", "Delete", new { id = item.ID })
-            </td>
-        </tr>
-    }
-
-
-
-</table>
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#iCAREBOARDTable').DataTable({
+                "ordering": true,
+                "paging": true,
+                "searching": true,
+                "responsive": true,
+                "language": {
+                    "search": "Filter records:"
+                }
+            });
+        });
+    </script>
+}
