@@ -67,40 +67,91 @@
                 </div>
             }
 
-            @if (Model.DocumentMetadata.Any())
-            {
-                <div class="mt-4">
-                    <h4>Documents</h4>
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Title</th>
-                                    <th>Created</th>
-                                    <th>Created By</th>
-                                    <th>Version</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var doc in Model.DocumentMetadata.OrderByDescending(d => d.dateOfCreation))
-                                {
-                                    <tr>
-                                        <td>@doc.docName</td>
-                                        <td>@doc.dateOfCreation.ToString("MMM dd, yyyy")</td>
-                                        <td>@doc.iCAREWorker.iCAREUser.name</td>
-                                        <td>@doc.version</td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
+            <!-- Updated Documents Section -->
+            <div class="card mt-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">
+                        <i class="fas fa-file-medical me-2"></i>Patient Documents
+                    </h4>
+                    @Html.ActionLink("Create New Document", "Create", "Document", new { patientId = Model.ID }, new { @class = "btn btn-primary" })
                 </div>
-            }
+                <div class="card-body">
+                    @if (!Model.DocumentMetadata.Any())
+                    {
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>No documents found for this patient.
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Title</th>
+                                        <th>Type</th>
+                                        <th>Created By</th>
+                                        <th>Date Created</th>
+                                        <th>Version</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var doc in Model.DocumentMetadata.OrderByDescending(d => d.dateOfCreation))
+                                    {
+                                        <tr>
+                                            <td>@doc.docName</td>
+                                            <td>
+                                                @if (doc.docName.StartsWith("Uploaded:"))
+                                                {
+                                                    <span class="badge bg-warning">Uploaded File</span>
+                                                }
+                                                else if (doc.docName.StartsWith("Prescription"))
+                                                {
+                                                    <span class="badge bg-primary">Prescription</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-success">General Note</span>
+                                                }
+                                            </td>
+                                            <td>@doc.iCAREWorker.iCAREUser.name</td>
+                                            <td>@doc.dateOfCreation.ToString("MMM dd, yyyy")</td>
+                                            <td>
+                                                @if (doc.version.HasValue)
+                                                {
+                                                    <span class="badge bg-secondary">v@(doc.version)</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <div class="btn-group">
+                                                    <a href="@Url.Action("Details", "Document", new { id = doc.docID })"
+                                                       class="btn btn-sm btn-info" title="View Details">
+                                                        <i class="fas fa-info-circle"></i>
+                                                    </a>
+                                                    <a href="@Url.Action("View", "Document", new { id = doc.docID })"
+                                                       class="btn btn-sm btn-primary" title="View Document" target="_blank">
+                                                        <i class="fas fa-file-pdf"></i>
+                                                    </a>
+                                                    @if (!doc.docName.StartsWith("Uploaded:") && !doc.docName.StartsWith("Prescription"))
+                                                    {
+                                                        <a href="@Url.Action("Edit", "Document", new { id = doc.docID })"
+                                                           class="btn btn-sm btn-warning" title="Edit Document">
+                                                            <i class="fas fa-edit"></i>
+                                                        </a>
+                                                    }
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
 
             <div class="mt-4">
-                <a href="@Url.Action("Create", "Document", new { patientId = Model.ID })" class="btn btn-success">
-                    <i class="fas fa-plus"></i> New Document
-                </a>
                 <a href="@Url.Action("Index", "MyBoard")" class="btn btn-secondary">
                     <i class="fas fa-arrow-left"></i> Back to My Board
                 </a>
@@ -109,3 +160,23 @@
     </div>
 </div>
 
+@section styles {
+    <style>
+        .table .btn-group .btn {
+            padding: 0.25rem 0.5rem;
+        }
+
+            .table .btn-group .btn:not(:last-child) {
+                margin-right: 0.25rem;
+            }
+
+        .badge {
+            font-size: 0.85em;
+            padding: 0.35em 0.65em;
+        }
+
+        .card-header {
+            background-color: #f8f9fa;
+        }
+    </style>
+}

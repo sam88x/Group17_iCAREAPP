@@ -412,6 +412,7 @@
     <Content Include="Views\PatientRecord\Details.cshtml" />
     <Content Include="Views\Document\Details.cshtml" />
     <Content Include="Views\Document\Edit.cshtml" />
+    <Content Include="Views\TreatmentRecords\AddTreatmentRecord.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

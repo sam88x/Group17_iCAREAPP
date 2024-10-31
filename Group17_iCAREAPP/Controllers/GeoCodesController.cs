@@ -37,7 +37,6 @@ namespace Group17_iCAREAPP.Controllers
                 ViewBag.UserId = user.ID;
 
 
-
             return View(patientRecords);
         }
 

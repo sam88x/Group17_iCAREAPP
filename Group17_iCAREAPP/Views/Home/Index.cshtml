@@ -56,8 +56,8 @@
                     @if (User.IsInRole("Doctor"))
                     {
                         <div class="card-footer bg-transparent border-0">
-                            <a href="@Url.Action("Index", "PatientRecord")" class="btn btn-outline-primary">
-                                <i class="fas fa-folder-open me-2"></i>Access Documents
+                            <a href="@Url.Action("Index", "MyBoard")" class="btn btn-outline-primary">
+                                <i class="fas fa-folder-open me-2"></i>My Board
                             </a>
                         </div>
                     }
@@ -77,8 +77,8 @@
                     @if (User.IsInRole("Nurse"))
                     {
                         <div class="card-footer bg-transparent border-0">
-                            <a href="@Url.Action("Index", "PatientRecord")" class="btn btn-outline-primary">
-                                <i class="fas fa-folder-open me-2"></i>Access Documents
+                            <a href="@Url.Action("Index", "MyBoard")" class="btn btn-outline-primary">
+                                <i class="fas fa-folder-open me-2"></i>My Board
                             </a>
                         </div>
                     }

@@ -3,6 +3,7 @@ using System.Linq;
 using System.Web.Mvc;
 using Group17_iCAREAPP.Models;
 using Group17_iCAREAPP.Models.ViewModels;
+using System.Data.Entity;
 
 namespace Group17_iCAREAPP.Controllers
 {
@@ -17,17 +18,51 @@ namespace Group17_iCAREAPP.Controllers
             _context = new Group17_iCAREDBEntities();
         }
 
-        public ActionResult Index(string searchQuery = "", string sortBy = "date", string filterBy = "all", int page = 1)
+        public ActionResult Index(string searchQuery = "", string patientSearchQuery = "",
+            string sortBy = "date", string filterBy = "all", int page = 1,
+            string viewMode = "grid", bool showOnlyMyPatients = false)
         {
             ViewBag.Title = "Palette";
-            
-            // Get base query
-            var query = _context.DocumentMetadata.AsQueryable();
 
-            // Apply search filter
+            // Get current user
+            var currentUser = User.Identity.Name;
+            var worker = _context.iCAREWorker
+                .Include(w => w.iCAREUser)
+                .FirstOrDefault(w => w.iCAREUser.UserPassword.userName == currentUser);
+
+            if (worker == null)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
+            // Get base query
+            var query = _context.DocumentMetadata
+                .Include(d => d.PatientRecord)
+                .Include(d => d.iCAREWorker.iCAREUser)
+                .Where(d => d.userID == worker.ID); // Only show documents created by this worker
+
+            // Apply document name search filter
             if (!string.IsNullOrEmpty(searchQuery))
             {
                 query = query.Where(d => d.docName.Contains(searchQuery));
+            }
+
+            // Apply patient name search filter
+            if (!string.IsNullOrEmpty(patientSearchQuery))
+            {
+                query = query.Where(d => d.PatientRecord.name.Contains(patientSearchQuery));
+            }
+
+            // Filter by my patients only
+            if (showOnlyMyPatients)
+            {
+                var myPatientIds = _context.TreatmentRecord
+                    .Where(t => t.workerID == worker.ID)
+                    .Select(t => t.patientID)
+                    .Distinct()
+                    .ToList();
+
+                query = query.Where(d => myPatientIds.Contains(d.patientID));
             }
 
             // Apply sorting
@@ -38,6 +73,9 @@ namespace Group17_iCAREAPP.Controllers
                     break;
                 case "version":
                     query = query.OrderByDescending(d => d.version);
+                    break;
+                case "patient":
+                    query = query.OrderBy(d => d.PatientRecord.name);
                     break;
                 case "date":
                 default:
@@ -52,13 +90,9 @@ namespace Group17_iCAREAPP.Controllers
 
             // Calculate skip and take values
             int skipAmount = (page - 1) * ItemsPerPage;
-            skipAmount = Math.Max(0, Math.Min(skipAmount, totalItems));
-            int takeAmount = Math.Min(ItemsPerPage, totalItems - skipAmount);
-
-            // Get paginated results
             var documents = query
                 .Skip(skipAmount)
-                .Take(takeAmount)
+                .Take(ItemsPerPage)
                 .ToList();
 
             // Create view model
@@ -68,28 +102,15 @@ namespace Group17_iCAREAPP.Controllers
                 CurrentPage = page,
                 TotalPages = totalPages,
                 SearchQuery = searchQuery,
+                PatientSearchQuery = patientSearchQuery,
                 SortBy = sortBy,
-                FilterBy = filterBy
+                FilterBy = filterBy,
+                ViewMode = viewMode,
+                ShowOnlyMyPatients = showOnlyMyPatients,
+                CurrentUserId = worker.ID
             };
 
             return View(viewModel);
-        }
-
-        [HttpPost]
-        public ActionResult SelectDocument(string docId)
-        {
-            if (string.IsNullOrEmpty(docId))
-            {
-                return HttpNotFound();
-            }
-
-            var document = _context.DocumentMetadata.Find(docId);
-            if (document == null)
-            {
-                return HttpNotFound();
-            }
-
-            return RedirectToAction("View", "Document", new { id = docId });
         }
 
         protected override void Dispose(bool disposing)
