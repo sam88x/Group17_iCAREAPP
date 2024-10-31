@@ -324,7 +324,7 @@ namespace Group17_iCAREAPP.Controllers
                         originalInfo.Add(new Chunk($"Last Modified: {DateTime.Now:yyyy-MM-dd HH:mm:ss}\n", greyFont));
                         originalInfo.Add(new Chunk($"Modified by: {worker.iCAREUser.name}\n", greyFont));
                         doc.Add(originalInfo);
-                        doc.Add(new Paragraph(new string('_', 90)));
+                        doc.Add(new Paragraph(new string('_', 75)));
                         doc.Add(Chunk.NEWLINE);
                     }
 
@@ -342,7 +342,7 @@ namespace Group17_iCAREAPP.Controllers
                             doc.Add(new Paragraph($"Treatment Area: {treatmentArea}", contentFont));
                         }
 
-                        doc.Add(new Paragraph(new string('_', 80)));
+                        doc.Add(new Paragraph(new string('_', 75)));
                         doc.Add(new Paragraph("\n"));
                     }
 
@@ -369,7 +369,7 @@ namespace Group17_iCAREAPP.Controllers
                     if (isEditMode)
                     {
                         doc.Add(new Paragraph("\n"));
-                        doc.Add(new Paragraph(new string('_', 80)));
+                        doc.Add(new Paragraph(new string('_', 75)));
                         var editInfo = new Paragraph($"Edited by {worker.iCAREUser.name} on {DateTime.Now:yyyy-MM-dd HH:mm:ss}", greyFont);
                         editInfo.Alignment = Element.ALIGN_RIGHT;
                         doc.Add(editInfo);
