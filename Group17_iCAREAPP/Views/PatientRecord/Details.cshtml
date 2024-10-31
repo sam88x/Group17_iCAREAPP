@@ -59,6 +59,12 @@
                                         <td>@treatment.treatmentDate.ToString("MMM dd, yyyy")</td>
                                         <td>@treatment.description</td>
                                         <td>@treatment.iCAREWorker.iCAREUser.name</td>
+                                        <td>
+                                            <a href="@Url.Action("Edit", "TreatmentRecords", new { id = treatment.treatmentID })"
+                                               class="btn btn-warning" title="Edit Treatment Record">
+                                                Edit
+                                            </a>
+                                        </td>
                                     </tr>
                                 }
                             </tbody>
