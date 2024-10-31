@@ -1,0 +1,104 @@
+﻿
+@model Group17_iCAREAPP.Models.DocumentMetadata
+
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header">
+            <h3>Document Details</h3>
+            <p class="text-muted mb-0">
+                Patient: @Model.PatientRecord.name
+            </p>
+        </div>
+        <div class="card-body">
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <dl class="row">
+                        <dt class="col-sm-4">Document ID</dt>
+                        <dd class="col-sm-8">@Model.docID</dd>
+
+                        <dt class="col-sm-4">Title</dt>
+                        <dd class="col-sm-8">@Model.docName</dd>
+
+                        <dt class="col-sm-4">Created</dt>
+                        <dd class="col-sm-8">@Model.dateOfCreation.ToString("MMM dd, yyyy")</dd>
+
+                        <dt class="col-sm-4">Version</dt>
+                        <dd class="col-sm-8">@Model.version</dd>
+                    </dl>
+                </div>
+                <div class="col-md-6">
+                    <dl class="row">
+                        <dt class="col-sm-4">Created By</dt>
+                        <dd class="col-sm-8">@Model.iCAREWorker.iCAREUser.name</dd>
+
+                        <dt class="col-sm-4">Patient ID</dt>
+                        <dd class="col-sm-8">@Model.patientID</dd>
+
+                        <dt class="col-sm-4">Treatment Area</dt>
+                        <dd class="col-sm-8">@Model.PatientRecord.treatmentArea</dd>
+                    </dl>
+                </div>
+            </div>
+
+            <div class="text-center mb-4">
+                <a href="@Url.Action("View", new { id = Model.docID })" class="btn btn-primary" target="_blank">
+                    <i class="fas fa-file-pdf me-2"></i>View Document
+                </a>
+                @* Only show edit button for non-uploaded documents *@
+                @if (!Model.docName.StartsWith("Uploaded:") && !Model.docName.StartsWith("Prescription"))
+                {
+                    <a href="@Url.Action("Edit", new { id = Model.docID })" class="btn btn-warning">
+                        <i class="fas fa-edit me-2"></i>Edit Document
+                    </a>
+                }
+            </div>
+
+            @* Add an indicator for uploaded files *@
+            @if (Model.docName.StartsWith("Uploaded:"))
+            {
+                <div class="mt-2">
+                    <span class="badge bg-info">
+                        <i class="fas fa-upload me-1"></i>Uploaded File
+                    </span>
+                </div>
+            }
+
+            @if (Model.ModificationHistory != null && Model.ModificationHistory.Any())
+            {
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h4>Document History</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Date Modified</th>
+                                        <th>Modified By</th>
+                                        <th>Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var mod in Model.ModificationHistory.OrderByDescending(m => m.datOfModification))
+                                    {
+                                        <tr>
+                                            <td>@mod.datOfModification.ToString("MMM dd, yyyy")</td>
+                                            <td>@mod.iCAREUser.name</td>
+                                            <td>@mod.description</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <div class="mt-4">
+                @Html.ActionLink("Back to Patient", "Details", "PatientRecord", new { id = Model.patientID }, new { @class = "btn btn-secondary" })
+            </div>
+        </div>
+    </div>
+</div>
+

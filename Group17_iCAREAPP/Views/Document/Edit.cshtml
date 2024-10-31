@@ -1,0 +1,156 @@
+﻿@* Views/Document/Edit.cshtml *@
+@model Group17_iCAREAPP.Models.ViewModels.EditDocumentViewModel
+
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header">
+            <h3>Edit Document</h3>
+            <div class="text-muted">
+                <div class="row">
+                    <div class="col-md-3">
+                        <strong>Patient:</strong> @Model.PatientName
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Treatment Area:</strong> @Model.TreatmentArea
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Bed:</strong> @(string.IsNullOrEmpty(Model.BedID) ? "Not assigned" : Model.BedID)
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Version:</strong> @Model.Version
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            @using (Html.BeginForm("Edit", "Document", FormMethod.Post, new { @class = "needs-validation" }))
+            {
+                @Html.AntiForgeryToken()
+                @Html.HiddenFor(m => m.DocumentId)
+                @Html.HiddenFor(m => m.PatientID)
+                @Html.HiddenFor(m => m.IsDoctor)
+                @Html.HiddenFor(m => m.Version)
+
+            <div class="form-group mb-3">
+                @Html.LabelFor(m => m.DocumentType, "Document Type", new { @class = "form-label" })
+
+                @if (Model.IsDoctor)
+                {
+                    @Html.DropDownListFor(m => m.DocumentType,
+                        new SelectList(new[]
+                        {
+                            new { Value = "General", Text = "General Note" },
+                            new { Value = "Prescription", Text = "Prescription" }
+                        }, "Value", "Text"),
+                        new { @class = "form-control", id = "documentType" })
+                }
+                else
+                {
+                    @Html.DropDownListFor(m => m.DocumentType,
+                        new SelectList(new[]
+                        {
+                            new { Value = "General", Text = "General Note" }
+                        }, "Value", "Text"),
+                        new { @class = "form-control", id = "documentType" })
+                }
+                @Html.ValidationMessageFor(m => m.DocumentType, "", new { @class = "text-danger" })
+            </div>
+
+                <div class="form-group mb-3">
+                    @Html.LabelFor(m => m.DocumentTitle, new { @class = "form-label" })
+                    @Html.TextBoxFor(m => m.DocumentTitle, new { @class = "form-control" })
+                    @Html.ValidationMessageFor(m => m.DocumentTitle, "", new { @class = "text-danger" })
+                </div>
+
+                <div class="form-group mb-3">
+                    @Html.LabelFor(m => m.Content, new { @class = "form-label" })
+                    @Html.TextAreaFor(m => m.Content, new { @class = "form-control", rows = "10", id = "documentContent" })
+                    @Html.ValidationMessageFor(m => m.Content, "", new { @class = "text-danger" })
+                </div>
+
+                if (Model.IsDoctor)
+                {
+                    <div id="drugSuggestions" class="mb-3 d-none">
+                        <div class="card">
+                            <div class="card-body">
+                                <h6>Drug Suggestions</h6>
+                                <div id="suggestionsList"></div>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+        <div class="form-group">
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+            @Html.ActionLink("Cancel", "Details", "Document", new { id = Model.DocumentId }, new { @class = "btn btn-secondary" })
+        </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @if (Model.IsDoctor)
+    {
+        <script>
+            $(document).ready(function () {
+                var typingTimer;
+                var doneTypingInterval = 300;
+
+                function shouldShowDrugSuggestions() {
+                    return $('#documentType').val() === 'Prescription';
+                }
+
+                $('#documentContent').on('input', function () {
+                    if (shouldShowDrugSuggestions()) {
+                        clearTimeout(typingTimer);
+                        var text = $(this).val();
+                        var words = text.split(/\s+/);
+                        var lastWord = words[words.length - 1];
+
+                        if (lastWord.length > 2) {
+                            typingTimer = setTimeout(function () {
+                                getDrugSuggestions(lastWord);
+                            }, doneTypingInterval);
+                        } else {
+                            $('#drugSuggestions').addClass('d-none');
+                        }
+                    }
+                });
+
+                $('#documentType').change(function () {
+                    if (!shouldShowDrugSuggestions()) {
+                        $('#drugSuggestions').addClass('d-none');
+                    }
+                });
+
+                function getDrugSuggestions(term) {
+                    $.get('/Document/GetDrugSuggestions', { term: term }, function (data) {
+                        if (data && data.length > 0) {
+                            var html = '';
+                            data.forEach(function (drug) {
+                                html += `<div class="suggestion-item" style="cursor: pointer; padding: 5px;">
+                                            ${drug.name}
+                                        </div>`;
+                            });
+                            $('#suggestionsList').html(html);
+                            $('#drugSuggestions').removeClass('d-none');
+                        } else {
+                            $('#drugSuggestions').addClass('d-none');
+                        }
+                    });
+                }
+
+                $(document).on('click', '.suggestion-item', function () {
+                    var text = $('#documentContent').val();
+                    var words = text.split(/\s+/);
+                    words.pop();
+                    words.push($(this).text().trim());
+                    $('#documentContent').val(words.join(' ') + ' ');
+                    $('#drugSuggestions').addClass('d-none');
+                });
+            });
+        </script>
+    }
+}
+

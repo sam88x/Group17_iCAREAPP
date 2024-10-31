@@ -1,4 +1,6 @@
-﻿@model Group17_iCAREAPP.Models.TreatmentRecord
+
+@model Group17_iCAREAPP.Models.TreatmentRecord
+
 
 <style>
     .btn-primary {
@@ -30,8 +32,9 @@
         }
 
     .form-control-static {
-        padding: 10px; 
-        margin-bottom: 5px; 
+        padding: 10px;
+        margin-bottom: 5px;
+
     }
 
     .form-horizontal .form-group {
@@ -46,6 +49,7 @@
 @using (Html.BeginForm())
 {
     @Html.AntiForgeryToken()
+
 
 <div class="form-horizontal">
     <hr />
