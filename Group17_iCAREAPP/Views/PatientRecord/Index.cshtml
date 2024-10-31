@@ -34,7 +34,7 @@
                             @Html.DisplayFor(modelItem => item.name)
                         </td>
                         <td>
-                            @(item.dateOfBirth?.ToString("dd/MM/yyyy"))
+                            @(item.dateOfBirth?.ToString("MM/dd/yyyy"))
                         </td>
                         <td>
                             @Html.DisplayFor(modelItem => item.bloodGroup)
@@ -46,7 +46,7 @@
                             @Html.DisplayFor(modelItem => item.bedID)
                         </td>
                         <td>
-                            @Html.DisplayFor(modelItem => item.iCAREWorker.ID)
+                            @(item.iCAREWorker?.iCAREUser?.name ?? "Not Available")
                         </td>
                         <td>
                             <div class="btn-group" role="group">
@@ -69,15 +69,6 @@
     <script>
         $(document).ready(function () {
             $('#patientRecordsTable').DataTable({
-                columns: [
-                    { title: "Name" },
-                    { title: "Date of Birth" },
-                    { title: "Blood Type" },
-                    { title: "Treatment Area" },
-                    { title: "Bed ID" },
-                    { title: "Last Modified By" },
-                    { title: "Actions" }, ,
-                ],
                 "ordering": true,
                 "paging": true,
                 "searching": true,

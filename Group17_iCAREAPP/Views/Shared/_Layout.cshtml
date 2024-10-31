@@ -35,6 +35,12 @@
                         <li class="nav-item">
                             @Html.ActionLink("My Board", "Index", "MyBoard", null, new { @class = "nav-link" })
                         </li>
+                        <li class="nav-item">
+                            @Html.ActionLink("iCARE Board", "Index", "GeoCodes", null, new { @class = "nav-link" })
+                        </li>
+                        <li class="nav-item">
+                            @Html.ActionLink("Palette", "Index", "Palette", null, new { @class = "nav-link" })
+                        </li>
 
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="patientDropdown" role="button"
@@ -45,16 +51,6 @@
                                 <li>@Html.ActionLink("Patient Records", "Index", "PatientRecord", null, new { @class = "dropdown-item" })</li>
                                 <li>@Html.ActionLink("Create New Patient", "Create", "PatientRecord", null, new { @class = "dropdown-item" })</li>
                             </ul>
-                        </li>
-                        <li class="nav-item">
-                            @Html.ActionLink("Palette", "Index", "Palette", null, new { @class = "nav-link" })
-                        </li>
-                        <li class="nav-item">
-                            @Html.ActionLink("iCARE Board", "Index", "iCAREBoard", null, new { @class = "nav-link" })
-                        </li>
-                        <li class="nav-item">
-                            @Html.ActionLink("iCAREBoard", "Index", "GeoCodes", null, new { @class = "nav-link" })
-
                         </li>
 
                     }
@@ -130,11 +126,10 @@
 
         <hr />
         <footer>
-            <p>&copy; @DateTime.Now.Year - iCARE Health Management System</p>
+            <p>&copy; @DateTime.Now.Year - iCARE</p>
         </footer>
     </div>
 
-    <!-- JavaScript Dependencies in correct order -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
