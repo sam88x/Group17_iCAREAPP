@@ -1,5 +1,6 @@
-﻿
+
 @model Group17_iCAREAPP.Models.TreatmentRecord
+
 
 <style>
     .btn-primary {
@@ -33,11 +34,13 @@
     .form-control-static {
         padding: 10px;
         margin-bottom: 5px;
+
     }
 
     .form-horizontal .form-group {
         margin-bottom: 15px;
     }
+
 </style>
 
 <h2>Add Treatment</h2>
@@ -47,49 +50,50 @@
 {
     @Html.AntiForgeryToken()
 
-    <div class="form-horizontal">
-        <hr />
-        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-        <div class="form-group">
-            @Html.Label("Patient Name", new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                <p class="form-control-static">@ViewBag.patientName</p>
-            </div>
-        </div>
 
-        <div class="form-group">
-            @Html.Label("Worker Name", new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                <p class="form-control-static">@User.Identity.Name</p>
-            </div>
-        </div>
-
-        <div class="form-group">
-            @Html.Label("Treatment Date", new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                <p class="form-control-static">@ViewBag.thedate</p>
-            </div>
-        </div>
-
-        <div class="form-group">
-            @Html.LabelFor(model => model.description, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.EditorFor(model => model.description, new { htmlAttributes = new { @class = "form-control", required = "required" } })
-                @Html.ValidationMessageFor(model => model.description, "", new { @class = "text-danger" })
-            </div>
-        </div>
-        <input type="hidden" name="patientID" value="@ViewBag.patientId" />
-        <input type="hidden" name="workerID" value="@ViewBag.workerId" />
-        <input type="hidden" name="treatmentDate" value="@ViewBag.thedate" />
-        <input type="hidden" name="treatmentID" value="@ViewBag.treatmentId" />
-
-
-        <div class="form-group">
-            <div class="col-md-offset-2 col-md-10">
-                <input type="submit" value="Create" class="btn btn-primary btn-lg" />
-            </div>
+<div class="form-horizontal">
+    <hr />
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    <div class="form-group">
+        @Html.Label("Patient Name", new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            <p class="form-control-static">@ViewBag.patientName</p>
         </div>
     </div>
+
+    <div class="form-group">
+        @Html.Label("Worker Name", new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            <p class="form-control-static">@User.Identity.Name</p>
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.Label("Treatment Date", new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            <p class="form-control-static">@ViewBag.thedate</p> 
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.description, htmlAttributes: new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @Html.EditorFor(model => model.description, new { htmlAttributes = new { @class = "form-control", required = "required" } })
+            @Html.ValidationMessageFor(model => model.description, "", new { @class = "text-danger" })
+        </div>
+    </div>
+    <input type="hidden" name="patientID" value="@ViewBag.patientId" />
+    <input type="hidden" name="workerID" value="@ViewBag.workerId" />
+    <input type="hidden" name="treatmentDate" value="@ViewBag.thedate" />
+    <input type="hidden" name="treatmentID" value="@ViewBag.treatmentId" />
+
+
+    <div class="form-group">
+        <div class="col-md-offset-2 col-md-10">
+            <input type="submit" value="Create" class="btn btn-primary btn-lg" />
+        </div>
+    </div>
+</div>
 
 }
 
@@ -100,4 +104,5 @@
 @section Scripts {
     @Scripts.Render("~/bundles/jqueryval")
 }
+
 

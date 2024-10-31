@@ -72,6 +72,11 @@ namespace Group17_iCAREAPP.Controllers
                 new[] { "A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-" },
                 patientRecord.bloodGroup
             );
+            var user = db.UserPassword.FirstOrDefault(u => u.userName == User.Identity.Name);
+
+            if (user != null)
+                ViewBag.iCAREWorkerID = user.ID;
+
 
             return View(patientRecord);
         }
@@ -83,12 +88,14 @@ namespace Group17_iCAREAPP.Controllers
         {
             if (ModelState.IsValid)
             {
-                patientRecord.modifierID = User.Identity.Name;
+                var user = db.UserPassword.FirstOrDefault(u => u.userName == User.Identity.Name);
+
+                patientRecord.modifierID = user.ID;
                 db.Entry(patientRecord).State = EntityState.Modified;
                 db.SaveChanges();
 
                 TempData["Success"] = "Patient record updated successfully.";
-                return RedirectToAction("Index");
+                return RedirectToAction("Index","MyBoard");
             }
 
             // Updated to use correct property names from GeoCodes model

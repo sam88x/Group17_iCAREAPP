@@ -12,7 +12,7 @@ namespace Group17_iCAREAPP.Controllers
 {
     public class ModificationHistoriesController : Controller
     {
-        private Group17_iCAREDBEntities1 db = new Group17_iCAREDBEntities1();
+        private Group17_iCAREDBEntities db = new Group17_iCAREDBEntities();
 
         // GET: ModificationHistories
         public ActionResult Index()
