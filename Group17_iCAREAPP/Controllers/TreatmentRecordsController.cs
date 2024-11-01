@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using Group17_iCAREAPP.Models;
@@ -55,41 +57,61 @@ namespace Group17_iCAREAPP.Controllers
             var roleName = "";
             roleName = db.UserRole.FirstOrDefault(r => r.ID == worker.userPermission).roleName;
 
+
             if (workerID != null)
                 ViewBag.workerId = workerID;
-            var patientRecord = db.PatientRecord.FirstOrDefault(p => p.ID.ToString() == patientId);
+            var patientRecord = db.PatientRecord.FirstOrDefault(p => p.ID == patientId);
+            
+            
             if (patientRecord == null)
             {
                 return Json(new { success = false, message = "Patient not found." ,roleName = roleName});
             }
             bool isAssigned = db.TreatmentRecord.Any(t => t.workerID == worker.ID && t.patientID == patientRecord.ID);
-            bool canAssign = false;
+            if (isAssigned)
+            {
+                return Json(new { success = false, message = "You already assigned.", roleName = roleName });
+            }
 
             var assignmentStatus = db.PatientAssignmentStatus
                 .FirstOrDefault(p => p.PatientRecordID == patientRecord.ID);
 
             if (roleName == "Doctor")
             {
-                if (assignmentStatus.AssignmentStatus != "Assigned" && assignmentStatus.NumOfNurses > 0)
-                    canAssign = true;
+                if (assignmentStatus.AssignmentStatus == "Assigned")
+                {
+                    return Json(new { success = false, message = "Another doctor is assigned", roleName = roleName });
+                }
+                else if(assignmentStatus.NumOfNurses == 0)
+                {
+                    return Json(new { success = false, message = "No nurse is assigned", roleName = roleName });
+                }
+
             }
             else if(roleName == "Nurse")
             {
-                if (assignmentStatus == null || assignmentStatus.NumOfNurses < 3) ;
-                canAssign = true;
+                if (assignmentStatus != null && assignmentStatus.NumOfNurses >= 3)
+                    return Json(new { success = false, message = "Too many nurses are assigned.", roleName });
             }
 
-            if(isAssigned)
-            {
-                return Json(new { success = false, message = "You already assigned.", roleName = roleName });
-            }
-            if(!canAssign)
-            {
-                return Json(new { success = false, message = "Unable to assign the patient.", roleName });
-            }
 
             //Save Assign Status
             return Json(new { success = true, message = "You can assign.", roleName = roleName});
+        }
+
+        [HttpGet]
+        public ActionResult GetPatientRecord(string patientId)
+        {
+            var patientRecord = db.PatientRecord.FirstOrDefault(p => p.ID == patientId);
+
+            var patientData = new
+            {
+                ID = patientRecord.ID,
+                name = patientRecord.name,
+                treatmentArea = patientRecord.treatmentArea,
+            };
+
+            return Json(patientData, JsonRequestBehavior.AllowGet);
         }
 
         public ActionResult AddTreatmentRecord(string patientId)

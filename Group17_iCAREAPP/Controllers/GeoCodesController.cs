@@ -35,12 +35,43 @@ namespace Group17_iCAREAPP.Controllers
 
             if (user != null)
                 ViewBag.UserId = user.ID;
-             
+
+            ViewBag.GeoDescription = db.GeoCodes.FirstOrDefault(g => g.ID == id).description;
+
 
             return View(patientRecords);
         }
 
 
+
+        public ActionResult AssignWholeArea(string id)
+        {
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+
+            var patientRecords = db.PatientRecord
+                .Where(pr => pr.geographicalUnit == id)
+                .ToList();
+            var user = db.UserPassword.FirstOrDefault(u => u.userName == User.Identity.Name);
+
+            if (user != null)
+            {
+                ViewBag.UserId = user.ID;
+                ViewBag.WorkerId = user.ID;
+            }
+
+            var worker = db.iCAREWorker.FirstOrDefault(w => w.ID == user.ID);
+            var roleName = "";
+            roleName = db.UserRole.FirstOrDefault(r => r.ID == worker.userPermission).roleName;
+
+            ViewBag.roleName = roleName;
+            ViewBag.GeoDescription = db.GeoCodes.FirstOrDefault(g => g.ID == id).description;
+
+
+            return View(patientRecords);
+        }
 
         // GET: GeoCodes/Create
         public ActionResult Create()

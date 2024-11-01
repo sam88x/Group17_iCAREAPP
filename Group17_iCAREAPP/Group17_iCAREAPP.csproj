@@ -416,6 +416,7 @@
     <Content Include="Views\Document\Details.cshtml" />
     <Content Include="Views\Document\Edit.cshtml" />
     <Content Include="Views\TreatmentRecords\AddTreatmentRecord.cshtml" />
+    <Content Include="Views\GeoCodes\AssignWholeArea.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
