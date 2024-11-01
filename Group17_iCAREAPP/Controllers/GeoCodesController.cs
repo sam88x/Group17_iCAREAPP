@@ -8,6 +8,7 @@ using System.Net;
 using System.Web;
 using System.Web.Mvc;
 using Group17_iCAREAPP.Models;
+using System.Diagnostics;
 
 namespace Group17_iCAREAPP.Controllers
 {
@@ -46,31 +47,62 @@ namespace Group17_iCAREAPP.Controllers
 
         public ActionResult AssignWholeArea(string id)
         {
+            Debug.WriteLine("==========================================");
+            Debug.WriteLine("Starting AssignWholeArea");
+            Debug.WriteLine($"Area ID: {id}");
+
             if (id == null)
             {
+                Debug.WriteLine("Error: ID is null");
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
 
-            var patientRecords = db.PatientRecord
-                .Where(pr => pr.geographicalUnit == id)
-                .ToList();
-            var user = db.UserPassword.FirstOrDefault(u => u.userName == User.Identity.Name);
-
-            if (user != null)
+            try
             {
-                ViewBag.UserId = user.ID;
-                ViewBag.WorkerId = user.ID;
+                var patientRecords = db.PatientRecord
+                    .Where(pr => pr.geographicalUnit == id)
+                    .ToList();
+
+                Debug.WriteLine($"Found {patientRecords.Count} patients in area");
+
+                var user = db.UserPassword.FirstOrDefault(u => u.userName == User.Identity.Name);
+                Debug.WriteLine($"Current user name: {User.Identity.Name}");
+
+                if (user != null)
+                {
+                    ViewBag.UserId = user.ID;
+                    ViewBag.WorkerId = user.ID;
+                    Debug.WriteLine($"User/Worker ID set: {user.ID}");
+                }
+                else
+                {
+                    Debug.WriteLine("Warning: User not found");
+                }
+
+                var worker = db.iCAREWorker.FirstOrDefault(w => w.ID == user.ID);
+                if (worker != null)
+                {
+                    var roleName = db.UserRole.FirstOrDefault(r => r.ID == worker.userPermission)?.roleName;
+                    ViewBag.roleName = roleName;
+                    Debug.WriteLine($"Role name set: {roleName}");
+                }
+                else
+                {
+                    Debug.WriteLine("Warning: Worker not found");
+                }
+
+                ViewBag.GeoDescription = db.GeoCodes.FirstOrDefault(g => g.ID == id)?.description;
+                Debug.WriteLine($"Area description: {ViewBag.GeoDescription}");
+
+                Debug.WriteLine("AssignWholeArea completed successfully");
+                return View(patientRecords);
             }
-
-            var worker = db.iCAREWorker.FirstOrDefault(w => w.ID == user.ID);
-            var roleName = "";
-            roleName = db.UserRole.FirstOrDefault(r => r.ID == worker.userPermission).roleName;
-
-            ViewBag.roleName = roleName;
-            ViewBag.GeoDescription = db.GeoCodes.FirstOrDefault(g => g.ID == id).description;
-
-
-            return View(patientRecords);
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error in AssignWholeArea: {ex.Message}");
+                Debug.WriteLine($"Stack trace: {ex.StackTrace}");
+                throw;
+            }
         }
 
         // GET: GeoCodes/Create
