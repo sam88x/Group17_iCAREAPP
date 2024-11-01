@@ -13,6 +13,7 @@
                 @Html.AntiForgeryToken()
                 @Html.ValidationSummary(true, "", new { @class = "text-danger" })
                 @Html.HiddenFor(model => model.treatmentID)
+                @Html.HiddenFor(model => model.treatmentDate)
 
                 <div class="row mb-4">
                     <div class="col-md-6">
@@ -35,8 +36,7 @@
                     <div class="col-md-6">
                         <div class="info-group">
                             <label class="form-label">Treatment Date</label>
-                            @Html.EditorFor(model => model.treatmentDate, new { htmlAttributes = new { @class = "form-control", type = "datetime-local" } })
-                            @Html.ValidationMessageFor(model => model.treatmentDate, "", new { @class = "text-danger" })
+                            <input type="text" class="form-control" value="@Model.treatmentDate.ToString("MM/dd/yyyy")" readonly />
                         </div>
                     </div>
                 </div>
@@ -98,10 +98,15 @@
         border: 1px solid #ced4da;
     }
 
-    .form-control:focus {
-        border-color: #80bdff;
-        box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
-    }
+        .form-control:focus {
+            border-color: #80bdff;
+            box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+        }
+
+        .form-control[readonly] {
+            background-color: #f8f9fa;
+            cursor: not-allowed;
+        }
 
     textarea.form-control {
         resize: vertical;
@@ -118,27 +123,30 @@
         border-color: #0d6efd;
     }
 
-    .btn-primary:hover {
-        background-color: #0b5ed7;
-        border-color: #0a58ca;
-    }
+        .btn-primary:hover {
+            background-color: #0b5ed7;
+            border-color: #0a58ca;
+        }
 
     .btn-outline-secondary {
         color: #6c757d;
         border-color: #6c757d;
     }
 
-    .btn-outline-secondary:hover {
-        color: #fff;
-        background-color: #6c757d;
-        border-color: #6c757d;
-    }
+        .btn-outline-secondary:hover {
+            color: #fff;
+            background-color: #6c757d;
+            border-color: #6c757d;
+        }
 
     .text-danger {
         font-size: 0.875rem;
         margin-top: 0.25rem;
     }
 
+    .text-muted {
+        font-size: 0.875rem;
+    }
 </style>
 
 @section Scripts {
