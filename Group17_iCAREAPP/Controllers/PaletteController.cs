@@ -7,7 +7,7 @@ using System.Data.Entity;
 
 namespace Group17_iCAREAPP.Controllers
 {
-    [Authorize(Roles = "Doctor,Nurse")]
+    [Authorize]
     public class PaletteController : Controller
     {
         private readonly Group17_iCAREDBEntities _context;
@@ -39,7 +39,7 @@ namespace Group17_iCAREAPP.Controllers
             var query = _context.DocumentMetadata
                 .Include(d => d.PatientRecord)
                 .Include(d => d.iCAREWorker.iCAREUser)
-                .Where(d => d.userID == worker.ID); // Only show documents created by this worker
+                .AsQueryable();
 
             // Apply document name search filter
             if (!string.IsNullOrEmpty(searchQuery))

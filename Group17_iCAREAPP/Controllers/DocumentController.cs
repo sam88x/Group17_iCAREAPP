@@ -8,6 +8,7 @@ using Group17_iCAREAPP.Models;
 using Group17_iCAREAPP.Models.ViewModels;
 using System.Data.Entity.Infrastructure;
 using System.Collections.Generic;
+using System.Text;
 
 namespace Group17_iCAREAPP.Controllers
 {
@@ -318,7 +319,7 @@ namespace Group17_iCAREAPP.Controllers
                     {
                         Paragraph originalInfo = new Paragraph();
                         originalInfo.Add(new Chunk($"Original Document Title: {title}\n", greyFont));
-                        originalInfo.Add(new Chunk($"Created by: {worker.iCAREUser.name}\n", greyFont));
+                        originalInfo.Add(new Chunk($"Created by: {doc123.iCAREWorker.iCAREUser.name}\n", greyFont));
                         originalInfo.Add(new Chunk($"Document Type: {documentType}\n", greyFont));
                         originalInfo.Add(new Chunk($"Created on: {doc123.dateOfCreation:yyyy-MM-dd}\n", greyFont));
                         originalInfo.Add(new Chunk($"Last Modified: {DateTime.Now:yyyy-MM-dd HH:mm:ss}\n", greyFont));
@@ -455,37 +456,28 @@ namespace Group17_iCAREAPP.Controllers
                 string content = "";
                 if (System.IO.File.Exists(filePath))
                 {
-                    // Extract only the content section, not the header
                     using (var reader = new iTextSharp.text.pdf.PdfReader(filePath))
                     {
+                        StringBuilder contentBuilder = new StringBuilder();
                         for (int page = 1; page <= reader.NumberOfPages; page++)
                         {
-                            content += iTextSharp.text.pdf.parser.PdfTextExtractor.GetTextFromPage(reader, page);
+                            contentBuilder.Append(iTextSharp.text.pdf.parser.PdfTextExtractor.GetTextFromPage(reader, page));
+                            if (page < reader.NumberOfPages)
+                            {
+                                contentBuilder.Append("\n");
+                            }
                         }
-
-                        // Clean up the extracted content
-                        // Remove header information up to the first line of underscores
-                        int separatorIndex = content.IndexOf(new string('_', 90));
-                        if (separatorIndex != -1)
-                        {
-                            content = content.Substring(separatorIndex + 90).Trim();
-                        }
-
-                        // If it's a prescription, remove the "PRESCRIPTION DOCUMENT" header
-                        content = content.Replace("PRESCRIPTION DOCUMENT", "").Trim();
-
-                        // Remove the footer if it exists (everything after the last line of underscores)
-                        separatorIndex = content.LastIndexOf(new string('_', 90));
-                        if (separatorIndex != -1)
-                        {
-                            content = content.Substring(0, separatorIndex).Trim();
-                        }
-
-                        // Clean up any extra whitespace
-                        content = content.Trim();
+                        content = contentBuilder.ToString();
                     }
+
+                    // Extract and clean the content
+                    content = ExtractMainContent(content);
+
+                    // Debug logging
+                    System.Diagnostics.Debug.WriteLine("Extracted content:");
+                    System.Diagnostics.Debug.WriteLine(content);
                 }
-                content = CleanExtractedContent(content);
+
                 var viewModel = new EditDocumentViewModel
                 {
                     DocumentId = document.docID,
@@ -497,16 +489,126 @@ namespace Group17_iCAREAPP.Controllers
                     BedID = document.PatientRecord.bedID,
                     Version = document.version ?? 1,
                     IsDoctor = User.IsInRole("Doctor"),
-                    DocumentType = GetDocumentType(content) // Helper method to determine document type
+                    DocumentType = DetermineDocumentType(document.docName, content)
                 };
 
                 return View(viewModel);
             }
             catch (Exception ex)
             {
-                TempData["Error"] = "Error loading document for editing.";
+                TempData["Error"] = "Error loading document for editing: " + ex.Message;
                 return RedirectToAction("Index", "MyBoard");
             }
+        }
+
+        private string ExtractMainContent(string fullContent)
+        {
+            try
+            {
+                // Split content into lines for better processing
+                var lines = fullContent.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                                     .Select(l => l.Trim())
+                                     .Where(l => !string.IsNullOrWhiteSpace(l))
+                                     .ToList();
+
+                // Find the indexes of separator lines
+                int firstSeparatorIndex = -1;
+                int lastSeparatorIndex = -1;
+
+                for (int i = 0; i < lines.Count; i++)
+                {
+                    if (lines[i].Count(c => c == '_') >= 75)
+                    {
+                        if (firstSeparatorIndex == -1)
+                            firstSeparatorIndex = i;
+                        else
+                            lastSeparatorIndex = i;
+                    }
+                }
+
+                // If we found both separators
+                if (firstSeparatorIndex != -1 && lastSeparatorIndex != -1 && lastSeparatorIndex > firstSeparatorIndex)
+                {
+                    // Get content between separators, excluding the separators themselves
+                    var contentLines = lines.Skip(firstSeparatorIndex + 1)
+                                          .Take(lastSeparatorIndex - firstSeparatorIndex - 1)
+                                          .Where(line => !line.StartsWith("Document Type:"))
+                                          .Where(line => !line.StartsWith("Date:"))
+                                          .Where(line => !line.StartsWith("Author:"))
+                                          .Where(line => !line.StartsWith("Patient:"))
+                                          .Where(line => !line.StartsWith("Treatment Area:"))
+                                          .Where(line => !line.Contains("PRESCRIPTION DOCUMENT"))
+                                          .Where(line => !line.StartsWith("Prescribed by"))
+                                          .ToList();
+
+                    return string.Join("\n", contentLines).Trim();
+                }
+
+                // Fallback: try to find content after header information
+                var headerEndIndex = lines.FindIndex(l =>
+                    l.StartsWith("Treatment Area:") ||
+                    l.StartsWith("Patient:"));
+
+                if (headerEndIndex != -1 && headerEndIndex + 1 < lines.Count)
+                {
+                    var contentLines = lines.Skip(headerEndIndex + 1)
+                                          .Where(line => !line.All(c => c == '_'))
+                                          .Where(line => !line.StartsWith("Prescribed by"))
+                                          .ToList();
+
+                    return string.Join("\n", contentLines).Trim();
+                }
+
+                // If all else fails, return cleaned content
+                return CleanContent(fullContent);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error extracting content: {ex.Message}");
+                return CleanContent(fullContent);
+            }
+        }
+
+        private string CleanContent(string content)
+        {
+            if (string.IsNullOrWhiteSpace(content))
+                return string.Empty;
+
+            var lines = content.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                              .Select(l => l.Trim())
+                              .Where(l => !string.IsNullOrWhiteSpace(l))
+                              .Where(l => !l.All(c => c == '_'))
+                              .Where(l => !l.StartsWith("Document Type:"))
+                              .Where(l => !l.StartsWith("Date:"))
+                              .Where(l => !l.StartsWith("Author:"))
+                              .Where(l => !l.StartsWith("Patient:"))
+                              .Where(l => !l.StartsWith("Treatment Area:"))
+                              .Where(l => !l.Contains("PRESCRIPTION DOCUMENT"))
+                              .Where(l => !l.StartsWith("Prescribed by"))
+                              .ToList();
+
+            // Remove any remaining header-like content from the beginning
+            while (lines.Count > 0 &&
+                   (lines[0].Contains(":") ||
+                    lines[0].Contains("____") ||
+                    lines[0].Contains("Document") ||
+                    lines[0].Contains("Date")))
+            {
+                lines.RemoveAt(0);
+            }
+
+            return string.Join("\n", lines).Trim();
+        }
+
+        private string DetermineDocumentType(string title, string content)
+        {
+            if (title.IndexOf("Prescription", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                content.IndexOf("PRESCRIPTION DOCUMENT", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                content.IndexOf("Prescribed by Dr.", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                return "Prescription";
+            }
+            return "General";
         }
 
         [HttpPost]
@@ -534,30 +636,33 @@ namespace Group17_iCAREAPP.Controllers
                         return RedirectToAction("Index", "Home");
                     }
 
-                    var document = db.DocumentMetadata.Find(model.DocumentId);
+                    var document = db.DocumentMetadata
+                        .Include("iCAREWorker.iCAREUser")
+                        .FirstOrDefault(d => d.docID == model.DocumentId);
+
                     if (document == null)
                     {
                         TempData["Error"] = "Document not found.";
                         return RedirectToAction("Index", "MyBoard");
                     }
 
+                    // Check permissions for prescription documents
+                    if (model.DocumentType == "Prescription" && worker.UserRole.ID != "DR001")
+                    {
+                        TempData["Error"] = "Only doctors can edit prescription documents.";
+                        return RedirectToAction("Details", "Document", new { id = model.DocumentId });
+                    }
+
                     // Update metadata
                     document.docName = model.DocumentTitle;
                     document.version = (document.version ?? 1) + 1;
 
-                    // Get the next ID for ModificationHistory
-                    int nextId = 1;
-                    if (db.ModificationHistory.Any())
-                    {
-                        nextId = db.ModificationHistory.Max(m => m.ID) + 1;
-                    }
-
-                    // Create modification history with explicit ID
+                    // Create modification history
                     var modification = new ModificationHistory
                     {
-                        ID = nextId,
+                        ID = db.ModificationHistory.Any() ? db.ModificationHistory.Max(m => m.ID) + 1 : 1,
                         docID = document.docID,
-                        datOfModification = DateTime.Now,  // Make sure this matches your DB column name exactly
+                        datOfModification = DateTime.Now,
                         description = $"Document edited: {model.DocumentTitle} (Version {document.version})",
                         modifiedByUserID = worker.iCAREUser.ID
                     };
@@ -569,28 +674,15 @@ namespace Group17_iCAREAPP.Controllers
                     var filePath = Path.Combine(Server.MapPath("~/App_Data/Documents"), fileName);
                     GeneratePDF(model, worker, document, filePath);
 
-                    // Save all changes
                     db.SaveChanges();
                     transaction.Commit();
 
                     TempData["Success"] = "Document updated successfully.";
                     return RedirectToAction("Details", "Document", new { id = model.DocumentId });
                 }
-                catch (DbUpdateException ex)
-                {
-                    transaction.Rollback();
-                    System.Diagnostics.Debug.WriteLine($"DbUpdateException: {ex.Message}");
-                    if (ex.InnerException != null)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"Inner Exception: {ex.InnerException.Message}");
-                    }
-                    TempData["Error"] = "Error updating document in database. Please try again.";
-                    return View(model);
-                }
                 catch (Exception ex)
                 {
                     transaction.Rollback();
-                    System.Diagnostics.Debug.WriteLine($"General Exception: {ex.Message}");
                     TempData["Error"] = "Error updating document: " + ex.Message;
                     return View(model);
                 }
@@ -603,11 +695,11 @@ namespace Group17_iCAREAPP.Controllers
                 return string.Empty;
 
             // Find the last instance of the header separator
-            int lastSeparatorIndex = content.LastIndexOf(new string('_', 90));
+            int lastSeparatorIndex = content.LastIndexOf(new string('_', 75));
             if (lastSeparatorIndex != -1)
             {
                 // Find the first instance of the separator after all the headers
-                int startIndex = content.IndexOf(new string('_', 90));
+                int startIndex = content.IndexOf(new string('_', 75));
                 if (startIndex != -1)
                 {
                     // Get the content between the first and last separators

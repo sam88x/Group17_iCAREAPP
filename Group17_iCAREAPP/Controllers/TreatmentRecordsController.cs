@@ -220,34 +220,67 @@ namespace Group17_iCAREAPP.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            TreatmentRecord treatmentRecord = db.TreatmentRecord.Find(id);
+
+            TreatmentRecord treatmentRecord = db.TreatmentRecord
+                .Include(t => t.iCAREWorker)
+                .Include(t => t.PatientRecord)
+                .FirstOrDefault(t => t.treatmentID == id);
+
             if (treatmentRecord == null)
             {
                 return HttpNotFound();
             }
+
+            // Store the original treatment date in TempData
+            TempData["OriginalTreatmentDate"] = treatmentRecord.treatmentDate;
+
             ViewBag.workerID = new SelectList(db.iCAREWorker, "ID", "profession", treatmentRecord.workerID);
             ViewBag.patientID = new SelectList(db.PatientRecord, "ID", "name", treatmentRecord.patientID);
+
+            // Don't include treatment date in ViewBag as we want to preserve the original
             return View(treatmentRecord);
         }
 
         // POST: TreatmentRecords/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to, for 
-        // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit([Bind(Include = "treatmentID,description,treatmentDate,patientID,workerID")] TreatmentRecord treatmentRecord)
+        public ActionResult Edit([Bind(Include = "treatmentID,description,patientID,workerID")] TreatmentRecord treatmentRecord)
         {
             if (ModelState.IsValid)
             {
-                db.Entry(treatmentRecord).State = EntityState.Modified;
-                db.SaveChanges();
-                return RedirectToAction("Index");
+                try
+                {
+                    // Get the existing record from the database
+                    var existingRecord = db.TreatmentRecord.Find(treatmentRecord.treatmentID);
+                    if (existingRecord == null)
+                    {
+                        return HttpNotFound();
+                    }
+
+                    // Update only the fields that should be modified
+                    existingRecord.description = treatmentRecord.description;
+                    existingRecord.workerID = treatmentRecord.workerID;
+                    existingRecord.patientID = treatmentRecord.patientID;
+                    // treatmentDate is not updated, preserving the original value
+
+                    db.Entry(existingRecord).State = EntityState.Modified;
+                    db.SaveChanges();
+
+                    TempData["Success"] = "Treatment record updated successfully.";
+                    return RedirectToAction("Index");
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", "An error occurred while saving the changes: " + ex.Message);
+                }
             }
+
+            // If we got this far, something failed, redisplay form
             ViewBag.workerID = new SelectList(db.iCAREWorker, "ID", "profession", treatmentRecord.workerID);
             ViewBag.patientID = new SelectList(db.PatientRecord, "ID", "name", treatmentRecord.patientID);
+
             return View(treatmentRecord);
         }
-
         // GET: TreatmentRecords/Delete/5
         public ActionResult Delete(string id)
         {

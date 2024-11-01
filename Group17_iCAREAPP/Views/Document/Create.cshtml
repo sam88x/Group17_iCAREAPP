@@ -20,6 +20,9 @@
             </div>
         </div>
 
+        <!-- Alert placeholder -->
+        <div id="alertPlaceholder"></div>
+
         <!-- File Upload Section -->
         <div class="card-body border-bottom">
             @using (Html.BeginForm("UploadFile", "Document", FormMethod.Post, new { enctype = "multipart/form-data", id = "uploadForm" }))
@@ -31,13 +34,13 @@
                         <div class="form-group">
                             <label class="form-label">Select File</label>
                             <input type="file" id="fileUpload" name="file" class="form-control"
-                                   accept=".pdf,.jpg,.jpeg,.png,.gif" />
+                                   accept=".pdf,.jpg,.jpeg,.png,.gif" required />
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="form-group">
                             <label class="form-label">Document Title</label>
-                            <input type="text" id="uploadTitle" name="documentTitle" class="form-control" />
+                            <input type="text" id="uploadTitle" name="documentTitle" class="form-control" required />
                         </div>
                     </div>
                     <div class="col-md-2">
@@ -142,7 +145,6 @@
     </div>
 </div>
 
-
 @section Scripts {
     <style>
         /* Select2 Custom Styling */
@@ -170,9 +172,20 @@
             background-color: #0d6efd;
         }
 
-        .suggestion-item:hover {
-            background-color: #f8f9fa;
-            cursor: pointer;
+        .suggestion-item {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+            transition: background-color 0.2s;
+        }
+
+            .suggestion-item:hover {
+                background-color: #f8f9fa;
+                cursor: pointer;
+            }
+
+        .alert {
+            margin-bottom: 0;
+            border-radius: 0;
         }
     </style>
 
@@ -189,7 +202,49 @@
                 selectionCssClass: "form-control"
             });
 
-            // File upload handling
+            // File upload form handling
+            $('#uploadForm').on('submit', function (e) {
+                e.preventDefault();
+
+                var fileInput = $('#fileUpload')[0];
+                if (!fileInput.files.length) {
+                    showAlert('danger', 'Please select a file to upload');
+                    return false;
+                }
+
+                var formData = new FormData(this);
+
+                // Disable submit button and show loading state
+                var $submitBtn = $(this).find('button[type="submit"]');
+                var originalBtnText = $submitBtn.html();
+                $submitBtn.html('<i class="fas fa-spinner fa-spin me-2"></i>Uploading...').prop('disabled', true);
+
+                // Perform AJAX upload
+                $.ajax({
+                    url: $(this).attr('action'),
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function (response) {
+                        if (response.success) {
+                            showAlert('success', 'File uploaded successfully!');
+                            setTimeout(function () {
+                                window.location.href = response.redirectUrl;
+                            }, 1000);
+                        } else {
+                            showAlert('danger', response.message || 'Upload failed');
+                            $submitBtn.html(originalBtnText).prop('disabled', false);
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        showAlert('danger', 'Error uploading file: ' + error);
+                        $submitBtn.html(originalBtnText).prop('disabled', false);
+                    }
+                });
+            });
+
+            // File input change handler
             $('#fileUpload').change(function () {
                 var file = this.files[0];
                 if (file) {
@@ -216,23 +271,11 @@
 
             // Document type change handler
             $('#documentType').change(function () {
-                console.log('Document type changed to:', $(this).val());
                 var docType = $(this).val();
                 if (docType === 'Prescription') {
                     $('#standardTitleInput').hide();
                     $('#prescriptionTitleSelect').show();
                     $('#drugSuggestions').removeClass('d-none');
-
-                    // Reinitialize Select2
-                    $('#prescriptionTitle').select2('destroy').select2({
-                        placeholder: "Search for a drug...",
-                        allowClear: true,
-                        width: '100%',
-                        dropdownParent: $('#prescriptionTitleSelect'),
-                        theme: "bootstrap-5",
-                        minimumInputLength: 1,
-                        selectionCssClass: "form-control"
-                    });
                 } else {
                     $('#standardTitleInput').show();
                     $('#prescriptionTitleSelect').hide();
@@ -253,16 +296,9 @@
 
                 var prescriptionTitle = 'Prescription for ' + selectedDrug + ' (' + formattedDate + ')';
                 $('#DocumentTitle').val(prescriptionTitle);
-                console.log('Set document title to:', prescriptionTitle);
             });
 
-            // Clear title when prescription is cleared
-            $('#prescriptionTitle').on('select2:clear', function () {
-                $('#DocumentTitle').val('');
-                console.log('Cleared document title');
-            });
-
-            // Drug suggestions
+            // Drug suggestions handling
             var typingTimer;
             var doneTypingInterval = 300;
 
@@ -283,23 +319,6 @@
                 }
             });
 
-            function getDrugSuggestions(term) {
-                $.get('/Document/GetDrugSuggestions', { term: term }, function (data) {
-                    if (data && data.length > 0) {
-                        var html = '';
-                        data.forEach(function (drug) {
-                            html += `<div class="suggestion-item" style="cursor: pointer; padding: 5px;">
-                                    ${drug.name}
-                                </div>`;
-                        });
-                        $('#suggestionsList').html(html);
-                        $('#drugSuggestions').removeClass('d-none');
-                    } else {
-                        $('#drugSuggestions').addClass('d-none');
-                    }
-                });
-            }
-
             // Handle suggestion item clicks
             $(document).on('click', '.suggestion-item', function () {
                 var text = $('#documentContent').val();
@@ -308,34 +327,43 @@
                 words.push($(this).text().trim());
                 $('#documentContent').val(words.join(' ') + ' ');
                 $('#drugSuggestions').addClass('d-none');
-                console.log('Added drug suggestion:', $(this).text().trim());
             });
 
-            // Form validation
-            $('form.needs-validation').on('submit', function (event) {
-                if (!$('#DocumentTitle').val()) {
-                    event.preventDefault();
-                    alert('Please provide a document title');
-                    return false;
-                }
-                if (!$('#documentContent').val()) {
-                    event.preventDefault();
-                    alert('Please provide document content');
-                    return false;
-                }
-                return true;
-            });
+            // Helper functions
+            function showAlert(type, message) {
+                var alertHtml = `
+                        <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                            ${message}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>`;
 
-            // Trigger initial state
+                $('#alertPlaceholder').html(alertHtml);
+            }
+
+            function formatFileSize(bytes) {
+                if (bytes === 0) return '0 Bytes';
+                const k = 1024;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            }
+
+            function getDrugSuggestions(term) {
+                $.get('/Document/GetDrugSuggestions', { term: term }, function (data) {
+                    if (data && data.length > 0) {
+                        var html = data.map(drug =>
+                            `<div class="suggestion-item">${drug.name}</div>`
+                        ).join('');
+                        $('#suggestionsList').html(html);
+                        $('#drugSuggestions').removeClass('d-none');
+                    } else {
+                        $('#drugSuggestions').addClass('d-none');
+                    }
+                });
+            }
+
+            // Initialize document type on page load
             $('#documentType').trigger('change');
         });
-
-        function formatFileSize(bytes) {
-            if (bytes === 0) return '0 Bytes';
-            const k = 1024;
-            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-        }
     </script>
 }
