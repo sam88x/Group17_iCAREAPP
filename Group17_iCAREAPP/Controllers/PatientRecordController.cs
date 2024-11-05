@@ -13,6 +13,7 @@ namespace Group17_iCAREAPP.Controllers
         private readonly Group17_iCAREDBEntities db = new Group17_iCAREDBEntities();
 
         // GET: PatientRecords
+        // List of all patient records by the GeoCode of the patient
         public ActionResult Index()
         {
             var patientRecords = db.PatientRecord
@@ -37,16 +38,15 @@ namespace Group17_iCAREAPP.Controllers
         {
             if (ModelState.IsValid)
             {
-                patientRecord.ID = Guid.NewGuid().ToString();
+                patientRecord.ID = Guid.NewGuid().ToString(); // Generates unqique identifier string
                 patientRecord.modifierID = User.Identity.Name;
 
                 db.PatientRecord.Add(patientRecord);
                 db.SaveChanges();
-
+                // Returns to the list of patients once creation has occurred
                 TempData["Success"] = "Patient record created successfully.";
                 return RedirectToAction("Index");
             }
-
             ViewBag.geographicalUnit = new SelectList(db.GeoCodes, "ID", "description", patientRecord.geographicalUnit);
             return View(patientRecord);
         }
@@ -54,19 +54,22 @@ namespace Group17_iCAREAPP.Controllers
         // GET: PatientRecords/Edit/5
         public ActionResult Edit(string id)
         {
+            // Check to see if the paitent record id exists
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
 
+            // Checks to see if the patient record exists in the database
             var patientRecord = db.PatientRecord.Find(id);
             if (patientRecord == null)
             {
                 return HttpNotFound();
             }
 
-            // Updated to use correct property names from GeoCodes model
+            // Displays names of the geographical units
             ViewBag.geographicalUnit = new SelectList(db.GeoCodes, "ID", "description", patientRecord.geographicalUnit);
+            // Creates list of all possible blood groups so that can be selected
             ViewBag.BloodGroups = new SelectList(
                 new[] { "A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-" },
                 patientRecord.bloodGroup
@@ -89,14 +92,16 @@ namespace Group17_iCAREAPP.Controllers
             {
                 var user = db.UserPassword.FirstOrDefault(u => u.userName == User.Identity.Name);
 
+                // Marks records as being modified
                 patientRecord.modifierID = user.ID;
                 db.Entry(patientRecord).State = EntityState.Modified;
                 db.SaveChanges();
 
                 TempData["Success"] = "Patient record updated successfully.";
-                return RedirectToAction("Index","MyBoard");
+                // Returns to patient details
+                return RedirectToAction("Details", "PatientRecord", new { id = patientRecord.ID });
             }
-
+            // Same information as above
             ViewBag.geographicalUnit = new SelectList(db.GeoCodes, "ID", "description", patientRecord.geographicalUnit);
             ViewBag.BloodGroups = new SelectList(
                 new[] { "A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-" },
@@ -109,11 +114,13 @@ namespace Group17_iCAREAPP.Controllers
         {
             try
             {
+                // Includes infromation about the documents and treatments for that patient
                 var patient = db.PatientRecord
                     .Include("DocumentMetadata")
                     .Include("TreatmentRecord")
                     .FirstOrDefault(p => p.ID == id);
 
+                // If the patient does not exist, redirects to the home page
                 if (patient == null)
                 {
                     TempData["Error"] = "Patient not found.";

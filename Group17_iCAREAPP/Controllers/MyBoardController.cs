@@ -34,6 +34,7 @@ namespace Group17_iCAREAPP.Controllers
                     .Include("iCAREUser")
                     .FirstOrDefault(w => w.ID == userPassword.iCAREUser.ID);
 
+                // Both the worker and their role must be present
                 if (worker == null || worker.UserRole == null)
                 {
                     TempData["Error"] = "Access denied. Worker profile not found.";
@@ -47,11 +48,12 @@ namespace Group17_iCAREAPP.Controllers
                     return RedirectToAction("Index", "Home");
                 }
 
+                // Creates instance of view model to make view simple to manage
                 var viewModel = new MyBoardViewModel
                 {
                     Worker = worker,
                     Patients = GetActivePatients(worker.ID),
-                    IsDoctor = worker.UserRole.ID == "DR001"
+                    IsDoctor = worker.UserRole.ID == "DR001" // Checks if the id matches that of a doctor
                 };
 
                 return View(viewModel);
@@ -63,6 +65,7 @@ namespace Group17_iCAREAPP.Controllers
             }
         }
 
+        // Helper function finds the list of patients that are currently assigned to that worker
         private dynamic GetActivePatients(string workerId)
         {
             try
@@ -74,6 +77,7 @@ namespace Group17_iCAREAPP.Controllers
                     .Distinct()
                     .ToList();
 
+                // Collects list of patient records from the treatment records
                 var patients = db.PatientRecord
                     .Where(p => patientIds.Contains(p.ID))
                     .Select(p => new
@@ -87,8 +91,8 @@ namespace Group17_iCAREAPP.Controllers
                     .Select(x => new PatientBoardInfo
                     {
                         Patient = x.Patient,
-                        LastTreatment = x.LastTreatment,
-                        DocumentCount = x.Patient.DocumentMetadata.Count
+                        LastTreatment = x.LastTreatment, // Keeps track of each patient's latest treatment
+                        DocumentCount = x.Patient.DocumentMetadata.Count // Keeps track of how many documents are for a patient
                     })
                     .OrderByDescending(p => p.LastTreatment?.treatmentDate)
                     .ToList();

@@ -11,6 +11,7 @@ using System.Data.Entity.Infrastructure;
 
 namespace Group17_iCAREAPP.Controllers
 {
+    // Must be an administrator to manage the users of the system
     [Authorize(Roles = "Administrator")]
     public class AdminController : Controller
     {
@@ -20,6 +21,7 @@ namespace Group17_iCAREAPP.Controllers
         {
             try
             {
+                // Collects all the infomation about the user and their login info
                 var users = db.iCAREUser
                     .Include(u => u.iCAREWorker)
                     .Include(u => u.iCAREAdmin)
@@ -28,33 +30,31 @@ namespace Group17_iCAREAPP.Controllers
                     .Select(u => new UserManagementViewModel
                     {
                         ID = u.ID,
-                        Name = u.name ?? "N/A",
-                        Username = u.UserPassword != null ? u.UserPassword.userName : "N/A",
-                        UserType = u.iCAREAdmin != null ? "Administrator" :
-                                 u.iCAREWorker != null ? u.iCAREWorker.profession : "Unknown",
+                        Name = u.name ?? "N/A", // If not in database, N/A
+                        Username = u.UserPassword != null ? u.UserPassword.userName : "N/A", // If not in database, N/A
+                        UserType = u.iCAREAdmin != null ? "Administrator" : // User is adminstrator if in admin table
+                                 u.iCAREWorker != null ? u.iCAREWorker.profession : "Unknown", // Profession is similar to role, but typed out
                         Role = u.iCAREWorker != null && u.iCAREWorker.UserRole != null ?
                               u.iCAREWorker.UserRole.roleName : "N/A",
                         AccountStatus = u.UserPassword != null &&
                                       u.UserPassword.userAccountExpiryDate <= DateTime.Now ?
-                                      "Inactive" : "Active",
+                                      "Inactive" : "Active", // Keeps track of whether the time has expired on the acount
                         AccountExpiryDate = u.UserPassword != null ?
                                           u.UserPassword.userAccountExpiryDate : null
                     })
-                    .ToList();
+                    .ToList(); // Creates list of all users in system
 
                 return View(users);
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error in ManageUsers: {ex.Message}");
+                //System.Diagnostics.Debug.WriteLine($"Error in ManageUsers: {ex.Message}");
                 TempData["Error"] = "An error occurred while loading users.";
                 return RedirectToAction("Index", "Home");
             }
         }
 
-        /// <summary>
-        /// Displays the form for creating a new user
-        /// </summary>
+        // Displays the form for creating a new user
         [HttpGet]
         public ActionResult CreateUser()
         {
@@ -64,9 +64,9 @@ namespace Group17_iCAREAPP.Controllers
                 // Prepare dropdown for professions
                 ViewBag.Professions = new SelectList(new[]
                 {
-            new { Value = "Doctor", Text = "Doctor" },
-            new { Value = "Nurse", Text = "Nurse" }
-        }, "Value", "Text");
+                    new { Value = "Doctor", Text = "Doctor" },
+                    new { Value = "Nurse", Text = "Nurse" }
+                }, "Value", "Text");
 
                 return View(model);
             }
@@ -82,7 +82,7 @@ namespace Group17_iCAREAPP.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult CreateUser(CreateUserViewModel model)
         {
-            System.Diagnostics.Debug.WriteLine("CreateUser POST started");
+            // System.Diagnostics.Debug.WriteLine("CreateUser POST started");
 
             ModelState.Remove("UserType");
 
@@ -96,32 +96,34 @@ namespace Group17_iCAREAPP.Controllers
             {
                 try
                 {
-                    // First, verify that we have a valid admin ID
+                    // Verify that we have a valid admin ID
                     var currentUsername = User.Identity.Name;
                     var adminUser = db.iCAREAdmin.FirstOrDefault();
 
                     if (adminUser == null)
                     {
-                        System.Diagnostics.Debug.WriteLine("No admin found in the system");
+                        // System.Diagnostics.Debug.WriteLine("No admin found in the system");
+                        // Error if the admin is not found
                         ModelState.AddModelError("", "System configuration error: No admin found.");
                         PrepareViewBagForCreateUser();
                         return View(model);
                     }
 
-                    System.Diagnostics.Debug.WriteLine($"Using admin ID: {adminUser.ID}");
+                    //System.Diagnostics.Debug.WriteLine($"Using admin ID: {adminUser.ID}");
 
                     // Check username uniqueness
                     if (db.UserPassword.Any(u => u.userName == model.Username))
                     {
-                        ModelState.AddModelError("Username", "Username already exists.");
+                        // ModelState.AddModelError("Username", "Username already exists.");
+                        // Prompts user again
                         PrepareViewBagForCreateUser();
                         return View(model);
                     }
 
-                    var userId = Guid.NewGuid().ToString();
-                    System.Diagnostics.Debug.WriteLine($"Generated User ID: {userId}");
+                    var userId = Guid.NewGuid().ToString(); // Creates unqiue identifier code
+                    // System.Diagnostics.Debug.WriteLine($"Generated User ID: {userId}");
 
-                    // 1. Create iCAREUser
+                    // Create iCAREUser
                     var iCAREUser = new iCAREUser
                     {
                         ID = userId,
@@ -129,9 +131,9 @@ namespace Group17_iCAREAPP.Controllers
                     };
                     db.iCAREUser.Add(iCAREUser);
                     db.SaveChanges();
-                    System.Diagnostics.Debug.WriteLine("Created iCAREUser successfully");
+                    // System.Diagnostics.Debug.WriteLine("Created iCAREUser successfully");
 
-                    // 2. Create UserPassword
+                    // Create UserPassword
                     var userPassword = new UserPassword
                     {
                         ID = userId,
@@ -144,9 +146,10 @@ namespace Group17_iCAREAPP.Controllers
                     db.SaveChanges();
                     System.Diagnostics.Debug.WriteLine("Created UserPassword successfully");
 
-                    // 3. Create iCAREWorker with valid admin reference
+                    // Create iCAREWorker with valid admin reference
                     if (model.Profession == "Doctor" || model.Profession == "Nurse")
                     {
+                        // Uses specific ids from the database to assign roles
                         var roleId = model.Profession == "Doctor" ? "DR001" : "NR001";
 
                         var worker = new iCAREWorker
@@ -155,77 +158,85 @@ namespace Group17_iCAREAPP.Controllers
                             profession = model.Profession,
                             creator = adminUser.ID,  // Use the verified admin ID
                             userPermission = roleId,
-                            iCAREAdmin = adminUser  // Set the navigation property
+                            iCAREAdmin = adminUser
                         };
-                        db.iCAREWorker.Add(worker);
+                        db.iCAREWorker.Add(worker); // Worker added to the database
                         db.SaveChanges();
-                        System.Diagnostics.Debug.WriteLine("Created iCAREWorker successfully");
+                        // System.Diagnostics.Debug.WriteLine("Created iCAREWorker successfully");
                     }
 
                     dbContextTransaction.Commit();
-                    System.Diagnostics.Debug.WriteLine("Transaction committed successfully");
+                    // System.Diagnostics.Debug.WriteLine("Transaction committed successfully");
 
+                    // Success message and goes to list of users
                     TempData["Success"] = $"User {model.Name} ({model.Profession}) created successfully.";
                     return RedirectToAction("ManageUsers");
                 }
                 catch (Exception ex)
                 {
                     dbContextTransaction.Rollback();
-                    LogException("Error occurred", ex);
+                    // LogException("Error occurred", ex);
                     ModelState.AddModelError("", "An error occurred while creating the user. Please try again.");
+                    // If there is an error, will reprompt user for another entry into the form
                     PrepareViewBagForCreateUser();
                     return View(model);
                 }
             }
         }
 
-        private void LogException(string context, Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"{context}:");
-            System.Diagnostics.Debug.WriteLine($"Message: {ex.Message}");
+        // Used specifically for debugging
+        //private void LogException(string context, Exception ex)
+        //{
+        //    System.Diagnostics.Debug.WriteLine($"{context}:");
+        //    System.Diagnostics.Debug.WriteLine($"Message: {ex.Message}");
 
-            if (ex is DbUpdateException dbEx && dbEx.InnerException != null)
-            {
-                var innerEx = dbEx.InnerException;
-                while (innerEx != null)
-                {
-                    System.Diagnostics.Debug.WriteLine($"Inner Exception: {innerEx.Message}");
-                    innerEx = innerEx.InnerException;
-                }
-            }
-        }
+        //    if (ex is DbUpdateException dbEx && dbEx.InnerException != null)
+        //    {
+        //        var innerEx = dbEx.InnerException;
+        //        while (innerEx != null)
+        //        {
+        //            System.Diagnostics.Debug.WriteLine($"Inner Exception: {innerEx.Message}");
+        //            innerEx = innerEx.InnerException;
+        //        }
+        //    }
+        //}
 
+        // Helper method creates list of profession for user to select when opening form
         private void PrepareViewBagForCreateUser()
         {
             ViewBag.Professions = new SelectList(new[]
             {
-        new { Value = "Doctor", Text = "Doctor" },
-        new { Value = "Nurse", Text = "Nurse" }
-    }, "Value", "Text");
+                new { Value = "Doctor", Text = "Doctor" },
+                new { Value = "Nurse", Text = "Nurse" }
+            }, "Value", "Text");
         }
 
 
         [HttpGet]
         public ActionResult EditUser(string id)
         {
-            System.Diagnostics.Debug.WriteLine($"Edit User ID: {id}");  // Debug log
+            // System.Diagnostics.Debug.WriteLine($"Edit User ID: {id}");
 
+            // If the user id passed is not present, throws an exception
             if (string.IsNullOrEmpty(id))
             {
                 return new HttpStatusCodeResult(System.Net.HttpStatusCode.BadRequest);
             }
 
+            // Looks for the user of interest
             var user = db.iCAREUser
                 .Include(u => u.iCAREWorker)
                 .Include(u => u.UserPassword)
                 .FirstOrDefault(u => u.ID == id);
 
+            // Checks that the user is in the database
             if (user == null)
             {
-                System.Diagnostics.Debug.WriteLine("User not found");  // Debug log
+                // System.Diagnostics.Debug.WriteLine("User not found");  // Debug log
                 return HttpNotFound();
             }
 
+            // Creates view model for easier management of viewing the users
             var model = new EditUserViewModel
             {
                 ID = user.ID,
@@ -237,12 +248,11 @@ namespace Group17_iCAREAPP.Controllers
             // Set up the profession dropdown
             ViewBag.Professions = new SelectList(new[]
             {
-        new { Value = "Doctor", Text = "Doctor" },
-        new { Value = "Nurse", Text = "Nurse" }
-    }, "Value", "Text", model.Profession);
+                new { Value = "Doctor", Text = "Doctor" },
+                new { Value = "Nurse", Text = "Nurse" }
+            }, "Value", "Text", model.Profession);
 
-            // Debug log
-            System.Diagnostics.Debug.WriteLine($"Model created - Name: {model.Name}, Profession: {model.Profession}");
+            // System.Diagnostics.Debug.WriteLine($"Model created - Name: {model.Name}, Profession: {model.Profession}");
 
             return View(model);
         }
@@ -253,6 +263,7 @@ namespace Group17_iCAREAPP.Controllers
         {
             if (ModelState.IsValid)
             {
+                // Very similar to above
                 var user = db.iCAREUser
                     .Include(u => u.iCAREWorker)
                     .Include(u => u.UserPassword)
@@ -288,13 +299,14 @@ namespace Group17_iCAREAPP.Controllers
 
                     try
                     {
+                        // Saves changes and returns to the list of workers
                         db.SaveChanges();
                         TempData["Success"] = "User updated successfully.";
                         return RedirectToAction("ManageUsers");
                     }
                     catch (Exception ex)
                     {
-                        System.Diagnostics.Debug.WriteLine($"Error updating user: {ex.Message}");
+                        // System.Diagnostics.Debug.WriteLine($"Error updating user: {ex.Message}");
                         ModelState.AddModelError("", "An error occurred while saving changes.");
                     }
                 }
@@ -304,7 +316,7 @@ namespace Group17_iCAREAPP.Controllers
                 }
             }
 
-            // If we got this far, something failed, redisplay form
+            // Something went wrong and need to redisplay form
             ViewBag.Professions = new SelectList(new[]
             {
                 new { Value = "Doctor", Text = "Doctor" },
@@ -316,17 +328,20 @@ namespace Group17_iCAREAPP.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        // Prevents user from being able to login
         public ActionResult DeactivateUser(string id)
         {
             var userPassword = db.UserPassword.Find(id);
             if (userPassword != null)
             {
+                // Simply changes the expiration date to their account to right now, so it expires
                 userPassword.userAccountExpiryDate = DateTime.Now;
                 db.SaveChanges();
             }
             return RedirectToAction("ManageUsers");
         }
-
+        
+        // Helper method hashes the password with SHA-256 encryption
         private string HashPassword(string password)
         {
             using (var sha256 = SHA256.Create())
@@ -346,6 +361,7 @@ namespace Group17_iCAREAPP.Controllers
         }
     }
 
+    // View model to help with creation
     public class CreateUserViewModel
     {
         [Required]
@@ -381,7 +397,8 @@ namespace Group17_iCAREAPP.Controllers
         [DataType(DataType.Date)]
         public DateTime? AccountExpiryDate { get; set; }
     }
-
+    
+    // Edit view model to help with the editing process
     public class EditUserViewModel
     {
         public string ID { get; set; }
@@ -409,6 +426,7 @@ namespace Group17_iCAREAPP.Controllers
         public string NewPassword { get; set; }
     }
 
+    // View model for displaying all the workers in the final table
     public class UserManagementViewModel
     {
         public string ID { get; set; }
