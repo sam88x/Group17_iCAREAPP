@@ -17,6 +17,7 @@ namespace Group17_iCAREAPP.Controllers
         private Group17_iCAREDBEntities db = new Group17_iCAREDBEntities();
 
         // GET: TreatmentRecords
+        //Creates list of Treatment Records
         public ActionResult Index()
         {
             var treatmentRecord = db.TreatmentRecord.Include(t => t.iCAREWorker).Include(t => t.PatientRecord);
