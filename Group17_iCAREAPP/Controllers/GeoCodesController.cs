@@ -44,57 +44,42 @@ namespace Group17_iCAREAPP.Controllers
         }
 
 
-
+        // GET: TreatmentRecords/AssignWholeArea
+        // Takes the id of a geographic area and returns a view that allows the user to assign all patients in the area.
         public ActionResult AssignWholeArea(string id)
         {
-            Debug.WriteLine("==========================================");
-            Debug.WriteLine("Starting AssignWholeArea");
-            Debug.WriteLine($"Area ID: {id}");
 
             if (id == null)
             {
-                Debug.WriteLine("Error: ID is null");
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
 
             try
             {
+                // Find all patients in the geographical area
                 var patientRecords = db.PatientRecord
                     .Where(pr => pr.geographicalUnit == id)
                     .ToList();
 
-                Debug.WriteLine($"Found {patientRecords.Count} patients in area");
-
+                // Find current user's id
                 var user = db.UserPassword.FirstOrDefault(u => u.userName == User.Identity.Name);
-                Debug.WriteLine($"Current user name: {User.Identity.Name}");
 
                 if (user != null)
                 {
+                    // send id using ViewBag
                     ViewBag.UserId = user.ID;
-                    ViewBag.WorkerId = user.ID;
-                    Debug.WriteLine($"User/Worker ID set: {user.ID}");
-                }
-                else
-                {
-                    Debug.WriteLine("Warning: User not found");
                 }
 
                 var worker = db.iCAREWorker.FirstOrDefault(w => w.ID == user.ID);
                 if (worker != null)
                 {
                     var roleName = db.UserRole.FirstOrDefault(r => r.ID == worker.userPermission)?.roleName;
+                    ViewBag.WorkerId = user.ID;
                     ViewBag.roleName = roleName;
-                    Debug.WriteLine($"Role name set: {roleName}");
-                }
-                else
-                {
-                    Debug.WriteLine("Warning: Worker not found");
                 }
 
                 ViewBag.GeoDescription = db.GeoCodes.FirstOrDefault(g => g.ID == id)?.description;
-                Debug.WriteLine($"Area description: {ViewBag.GeoDescription}");
 
-                Debug.WriteLine("AssignWholeArea completed successfully");
                 return View(patientRecords);
             }
             catch (Exception ex)
