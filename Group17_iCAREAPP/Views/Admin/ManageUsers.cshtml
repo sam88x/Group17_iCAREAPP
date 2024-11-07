@@ -1,6 +1,7 @@
 ﻿
 @model IEnumerable<Group17_iCAREAPP.Controllers.UserManagementViewModel>
 
+<!--View shows the table with all users in the system-->
 <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>Manage Users</h2>
@@ -14,13 +15,14 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
-
+    <!--Table includes all information about the users-->
     <div class="card shadow">
         <div class="card-body">
             <div class="table-responsive">
                 <table class="table table-striped table-hover" id="usersTable">
                     <thead>
                         <tr>
+                            <!--Headers for the table-->
                             <th>Name</th>
                             <th>Username</th>
                             <th>User Role</th>
@@ -37,6 +39,7 @@
                                 <td>@item.Username</td>
                                 <td>@item.UserType</td>
                                 <td>
+                                    <!--"Active" means that the account has not expired-->
                                     @if (item.AccountStatus == "Active")
                                     {
                                         <span class="badge bg-success">Active</span>
@@ -51,12 +54,14 @@
                                 </td>
                                 <td>
                                     <div class="btn-group" role="group">
+                                        <!--Button in the table allows for user to get entered-->
                                         <a href="@Url.Action("EditUser", "Admin", new { id = item.ID })"
                                            class="btn btn-sm btn-primary">
                                             <i class="fas fa-edit"></i> Edit
                                         </a>
                                         @if (item.AccountStatus == "Active")
                                         {
+                                            <!--Can change the expiration date for the user to deactivate the account-->
                                             using (Html.BeginForm("DeactivateUser", "Admin", new { id = item.ID },
                                                    FormMethod.Post, new { style = "display:inline;" }))
                                             {
@@ -96,6 +101,7 @@
     <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
     <script>
+        // Sets up the table with ability to sort and search
         $(document).ready(function () {
             $('#usersTable').DataTable({
                 "responsive": true,

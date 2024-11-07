@@ -1,6 +1,7 @@
 ﻿<!DOCTYPE html>
 <html>
 <head>
+    <!--Heading of the title page-->
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@ViewBag.Title - iCARE Application</title>
@@ -18,6 +19,7 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
+            <!--Home page is shown when opening site-->
             @Html.ActionLink("iCARE", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent"
                     aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -26,10 +28,12 @@
 
             <div class="collapse navbar-collapse" id="navbarContent">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <!--Reagrdless of user, the home page is always an option-->
                     <li class="nav-item">
                         @Html.ActionLink("Home", "Index", "Home", new { area = "" }, new { @class = "nav-link" })
                     </li>
 
+                    <!--If the logged in individual is a Doctor or Nurse, they can see MyBoard, iCARE Board Palette and patient management-->
                     @if (User.IsInRole("Doctor") || User.IsInRole("Nurse"))
                     {
                         <li class="nav-item">
@@ -47,6 +51,7 @@
                                data-bs-toggle="dropdown" aria-expanded="false">
                                 Patient Management
                             </a>
+                            <!--Dropdown for dealing with patient records-->
                             <ul class="dropdown-menu" aria-labelledby="patientDropdown">
                                 <li>@Html.ActionLink("Patient Records", "Index", "PatientRecord", null, new { @class = "dropdown-item" })</li>
                                 <li>@Html.ActionLink("Create New Patient", "Create", "PatientRecord", null, new { @class = "dropdown-item" })</li>
@@ -54,7 +59,7 @@
                         </li>
 
                     }
-
+                    <!--If the user is an admin, can only deal with managing and creating users-->
                     @if (User.IsInRole("Administrator"))
                     {
                         <li class="nav-item dropdown">
@@ -71,6 +76,7 @@
                 </ul>
 
                 <ul class="navbar-nav ms-auto">
+                    <!--Where the login button is, shows the user logged in once they have been authenticated-->
                     @if (Request.IsAuthenticated)
                     {
                         <li class="nav-item dropdown">
@@ -78,6 +84,7 @@
                                data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fas fa-user me-1"></i>Welcome, @User.Identity.Name!
                             </a>
+                            <!--When a user logs in, can either change password or log out-->
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                                 <li>@Html.ActionLink("Change Password", "ChangePassword", "Account", null, new { @class = "dropdown-item" })</li>
                                 <li><hr class="dropdown-divider"></li>
@@ -95,6 +102,7 @@
                     }
                     else
                     {
+                        <!--If the user has not be authenticated, must login-->
                         <li class="nav-item">
                             @Html.ActionLink("Log In", "Login", "Account", null, new { @class = "nav-link" })
                         </li>
