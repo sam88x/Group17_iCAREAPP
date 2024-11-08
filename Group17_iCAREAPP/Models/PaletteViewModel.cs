@@ -1,4 +1,8 @@
-﻿using System.Collections.Generic;
+﻿// The PaletteViewModel class stores the information and user settings needed to display a list of documents divided into pages.
+// Contains state related to search, sort, filter, view mode, etc, 
+// and is used to display documents based on the settings selected by the user.
+
+using System.Collections.Generic;
 
 namespace Group17_iCAREAPP.Models.ViewModels
 {
