@@ -4,8 +4,8 @@ The iCARE system website url
 
 How to run the application
 - Download the zip file.
-- Open the downloaded folder and navigate to Group17_iCAREAPP > bin > roslyn.
-- Run the executable file named "csc.exe".
+- Open the downloaded folder and navigate to Group17_iCAREAPP > bin > Release.
+- Web deployment package can be found there.
 - Log in to the application. Use the following admin credentials:
 ID: admin
 Password: admin
