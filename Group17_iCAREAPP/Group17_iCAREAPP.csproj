@@ -137,23 +137,15 @@
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="Controllers\AccountController.cs" />
     <Compile Include="Controllers\DocumentController.cs" />
-    <Compile Include="Controllers\DocumentMetadatasController.cs" />
-    <Compile Include="Controllers\DrugsDictionariesController.cs" />
     <Compile Include="Controllers\GeoCodesController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\iCAREAdminsController.cs" />
-    <Compile Include="Controllers\iCAREBoardController.cs" />
-    <Compile Include="Controllers\iCAREUsersController.cs" />
-    <Compile Include="Controllers\iCAREWorkersController.cs" />
     <Compile Include="Controllers\ManageUserController.cs" />
-    <Compile Include="Controllers\ModificationHistoriesController.cs" />
     <Compile Include="Controllers\MyBoardController.cs" />
     <Compile Include="Controllers\PaletteController.cs" />
     <Compile Include="Controllers\PatientRecordController.cs" />
     <Compile Include="Controllers\TreatmentRecordController.cs" />
     <Compile Include="Controllers\TreatmentRecordsController.cs" />
-    <Compile Include="Controllers\UserPasswordsController.cs" />
-    <Compile Include="Controllers\UserRolesController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
@@ -201,11 +193,6 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Model2.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\Model2.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Model2.edmx</DependentUpon>
     </Compile>
     <Compile Include="Models\ModificationHistory.cs">
       <DependentUpon>Model1.tt</DependentUpon>
@@ -282,13 +269,6 @@
     <Content Include="Models\Model1.edmx.diagram">
       <DependentUpon>Model1.edmx</DependentUpon>
     </Content>
-    <EntityDeploy Include="Models\Model2.edmx">
-      <Generator>EntityModelCodeGenerator</Generator>
-      <LastGenOutput>Model2.Designer.cs</LastGenOutput>
-    </EntityDeploy>
-    <Content Include="Models\Model2.edmx.diagram">
-      <DependentUpon>Model2.edmx</DependentUpon>
-    </Content>
     <Content Include="Scripts\bootstrap.bundle.js" />
     <Content Include="Scripts\bootstrap.bundle.min.js" />
     <Content Include="Scripts\bootstrap.esm.js" />
@@ -353,51 +333,16 @@
     <Content Include="Views\iCAREAdmins\Details.cshtml" />
     <Content Include="Views\iCAREAdmins\Edit.cshtml" />
     <Content Include="Views\iCAREAdmins\Index.cshtml" />
-    <Content Include="Views\DocumentMetadatas\Create.cshtml" />
-    <Content Include="Views\DocumentMetadatas\Delete.cshtml" />
-    <Content Include="Views\DocumentMetadatas\Details.cshtml" />
-    <Content Include="Views\DocumentMetadatas\Edit.cshtml" />
-    <Content Include="Views\DocumentMetadatas\Index.cshtml" />
-    <Content Include="Views\DrugsDictionaries\Create.cshtml" />
-    <Content Include="Views\DrugsDictionaries\Delete.cshtml" />
-    <Content Include="Views\DrugsDictionaries\Details.cshtml" />
-    <Content Include="Views\DrugsDictionaries\Edit.cshtml" />
-    <Content Include="Views\DrugsDictionaries\Index.cshtml" />
     <Content Include="Views\GeoCodes\Create.cshtml" />
     <Content Include="Views\GeoCodes\Delete.cshtml" />
     <Content Include="Views\GeoCodes\Details.cshtml" />
     <Content Include="Views\GeoCodes\Edit.cshtml" />
     <Content Include="Views\GeoCodes\Index.cshtml" />
-    <Content Include="Views\iCAREUsers\Create.cshtml" />
-    <Content Include="Views\iCAREUsers\Delete.cshtml" />
-    <Content Include="Views\iCAREUsers\Details.cshtml" />
-    <Content Include="Views\iCAREUsers\Edit.cshtml" />
-    <Content Include="Views\iCAREUsers\Index.cshtml" />
-    <Content Include="Views\iCAREWorkers\Create.cshtml" />
-    <Content Include="Views\iCAREWorkers\Delete.cshtml" />
-    <Content Include="Views\iCAREWorkers\Details.cshtml" />
-    <Content Include="Views\iCAREWorkers\Edit.cshtml" />
-    <Content Include="Views\iCAREWorkers\Index.cshtml" />
-    <Content Include="Views\ModificationHistories\Create.cshtml" />
-    <Content Include="Views\ModificationHistories\Delete.cshtml" />
-    <Content Include="Views\ModificationHistories\Details.cshtml" />
-    <Content Include="Views\ModificationHistories\Edit.cshtml" />
-    <Content Include="Views\ModificationHistories\Index.cshtml" />
     <Content Include="Views\TreatmentRecords\Create.cshtml" />
     <Content Include="Views\TreatmentRecords\Delete.cshtml" />
     <Content Include="Views\TreatmentRecords\Details.cshtml" />
     <Content Include="Views\TreatmentRecords\Edit.cshtml" />
     <Content Include="Views\TreatmentRecords\Index.cshtml" />
-    <Content Include="Views\UserPasswords\Create.cshtml" />
-    <Content Include="Views\UserPasswords\Delete.cshtml" />
-    <Content Include="Views\UserPasswords\Details.cshtml" />
-    <Content Include="Views\UserPasswords\Edit.cshtml" />
-    <Content Include="Views\UserPasswords\Index.cshtml" />
-    <Content Include="Views\UserRoles\Create.cshtml" />
-    <Content Include="Views\UserRoles\Delete.cshtml" />
-    <Content Include="Views\UserRoles\Details.cshtml" />
-    <Content Include="Views\UserRoles\Edit.cshtml" />
-    <Content Include="Views\UserRoles\Index.cshtml" />
     <Content Include="Views\Admin\ManageUsers.cshtml" />
     <Content Include="Views\Admin\CreateUser.cshtml" />
     <Content Include="Views\Admin\EditUser.cshtml" />
