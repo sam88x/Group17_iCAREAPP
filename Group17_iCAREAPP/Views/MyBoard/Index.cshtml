@@ -1,6 +1,7 @@
 ﻿
 @model Group17_iCAREAPP.Models.ViewModels.MyBoardViewModel
 
+<!-- Header of my board contains specific information about the professional logged in -->
 <div class="container mt-4">
     <div class="card mb-4">
         <div class="card-header">
@@ -15,6 +16,7 @@
         </div>
     </div>
 
+    <!-- If there are not any patients assigned, handle with simple message -->
     @if (!Model.Patients.Any())
     {
         <div class="alert alert-info">
@@ -36,6 +38,7 @@
                                 <span class="badge bg-primary">@info.DocumentCount docs</span>
                             </div>
                         </div>
+                        <!-- Provides key information about the patient -->
                         <div class="card-body">
                             <div class="patient-info mb-3">
                                 <div class="row mb-2">
@@ -55,7 +58,7 @@
                                     <div class="col-8">@info.Patient.bloodGroup</div>
                                 </div>
                             </div>
-
+                            <!-- Prints the latest treatment to remind user what is going on -->
                             @if (info.LastTreatment != null)
                             {
                                 <div class="last-treatment mb-3">
@@ -64,21 +67,25 @@
                                     <small class="text-muted">@info.LastTreatment.description</small>
                                 </div>
                             }
-
+                            <!-- Within the cards, there are several actions to work with patient info -->
                             <div class="action-buttons">
+                                <!-- Allows for viewing of patient information -->
                                 <div class="btn-group-vertical w-100 gap-2">
                                     <a href="@Url.Action("Details", "PatientRecord", new { id = info.Patient.ID })"
                                        class="btn btn-primary btn-sm">
                                         <i class="fas fa-eye me-2"></i>Patient Details
                                     </a>
+                                    <!-- Allows for the patient record to be edited -->
                                     <a href="@Url.Action("Edit", "PatientRecord", new { id = info.Patient.ID })"
                                        class="btn btn-warning btn-sm">
                                         <i class="fas fa-edit me-2"></i>Edit Patient
                                     </a>
+                                    <!-- Allows doctor or nurse to add information about latest treatement -->
                                     <a href="@Url.Action("AddTreatmentRecord", "TreatmentRecords", new { patientId = info.Patient.ID })"
                                        class="btn btn-info btn-sm">
                                         <i class="fas fa-plus me-2"></i>Add Treatment
                                     </a>
+                                    <!-- Allows the user to create a document regarding that patient -->
                                     <a href="@Url.Action("Create", "Document", new { patientId = info.Patient.ID })"
                                        class="btn btn-success btn-sm">
                                         <i class="fas fa-file-medical me-2"></i>New Document
@@ -109,9 +116,9 @@
             transition: transform 0.2s ease;
         }
 
-        .card:hover {
-            transform: translateY(-2px);
-        }
+            .card:hover {
+                transform: translateY(-2px);
+            }
 
         .card-header {
             background-color: #f8f9fa;
@@ -125,12 +132,12 @@
             flex-direction: column;
         }
 
-        .btn-group-vertical .btn {
-            text-align: left;
-            padding: 0.5rem 1rem;
-            margin-bottom: 0.5rem;
-            border-radius: 0.25rem !important;
-        }
+            .btn-group-vertical .btn {
+                text-align: left;
+                padding: 0.5rem 1rem;
+                margin-bottom: 0.5rem;
+                border-radius: 0.25rem !important;
+            }
 
         .btn-outline-primary:hover,
         .btn-outline-secondary:hover,
@@ -180,8 +187,8 @@
             margin-bottom: 0.5rem;
         }
 
-        .gap-2 > *:last-child {
-            margin-bottom: 0;
-        }
+            .gap-2 > *:last-child {
+                margin-bottom: 0;
+            }
     </style>
 }
