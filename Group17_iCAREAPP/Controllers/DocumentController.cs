@@ -17,7 +17,12 @@ namespace Group17_iCAREAPP.Controllers
     {
         private readonly Group17_iCAREDBEntities db = new Group17_iCAREDBEntities();
 
-        // Creating a new document
+        // GET: Document/Create
+        // Displays form for creating a new document. Validates worker permissions and loads required data.
+        // Loads patient info, available drugs list, and determines if user is a doctor.
+        // Parameters:
+        //   patientId: ID of the patient for whom document is being created
+        // Returns: Create view with populated CreateDocumentViewModel or redirects to home with error
         public ActionResult Create(string patientId)
         {
             try
@@ -86,6 +91,13 @@ namespace Group17_iCAREAPP.Controllers
             }
         }
 
+        // POST: Document/Create
+        // Processes document creation including text documents and images.
+        // Handles different document types (general notes, prescriptions, images)
+        // Creates PDF with metadata, content, and proper formatting
+        // Parameters:
+        //   model: CreateDocumentViewModel containing document details and content
+        // Returns: Redirects to patient details on success or returns to view with errors
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Create(CreateDocumentViewModel model)
@@ -214,7 +226,12 @@ namespace Group17_iCAREAPP.Controllers
         }
 
         [HttpGet]
-        // Displays information about the document
+        // GET: Document/Details
+        // Displays detailed information about a specific document
+        // Includes metadata, author information, and modification history
+        // Parameters:
+        //   id: Document ID to retrieve
+        // Returns: Details view with document information or redirects with error
         public ActionResult Details(string id)
         {
             try
@@ -246,7 +263,12 @@ namespace Group17_iCAREAPP.Controllers
         }
 
         [HttpGet]
-        // Method helps with drug dictionary implementation
+        // GET: GetDrugSuggestions
+        // Provides drug name suggestions for autocomplete functionality
+        // Only accessible to doctors (role DR001)
+        // Parameters:
+        //   term: Search term for drug names
+        // Returns: JSON result with up to 5 matching drug names or empty array
         public JsonResult GetDrugSuggestions(string term)
         {
             try
@@ -278,7 +300,15 @@ namespace Group17_iCAREAPP.Controllers
             }
         }
 
-        // Method generates a PDF for text documents
+        // Private utility method for generating PDF documents
+        // Creates formatted PDF with headers, content, and metadata
+        // Handles both new documents and edited versions
+        // Parameters:
+        //   model: Document model (create or edit)
+        //   worker: Current worker information
+        //   doc123: Document metadata
+        //   filePath: Path to save PDF
+        // Returns: Generated PDF filename
         private string GeneratePDF(object model, iCAREWorker worker, DocumentMetadata doc123, string filePath)
         {
             // Local variables to aid in implementation
@@ -423,7 +453,12 @@ namespace Group17_iCAREAPP.Controllers
             return Path.GetFileName(filePath);
         }
 
-        // Enables user to look at the document
+        // GET: Document/View
+        // Retrieves and displays PDF document
+        // Handles both regular documents and uploaded files
+        // Parameters:
+        //   id: Document ID to view
+        // Returns: PDF file or redirects with error
         public ActionResult View(string id)
         {
             try
@@ -473,7 +508,12 @@ namespace Group17_iCAREAPP.Controllers
             }
         }
 
-        // Allows user to edit text documents
+        // GET: Document/Edit
+        // Prepares document for editing by extracting content from PDF
+        // Loads document metadata and content into edit form
+        // Parameters:
+        //   id: Document ID to edit
+        // Returns: Edit view with document content or redirects with error
         public ActionResult Edit(string id)
         {
             try
@@ -546,7 +586,11 @@ namespace Group17_iCAREAPP.Controllers
             }
         }
 
-        // Method pulls out the information from the PDF, omitting the header
+        // Private utility method for extracting main content from PDF
+        // Removes headers, footers, and metadata to get only editable content
+        // Parameters:
+        //   fullContent: Complete PDF content
+        // Returns: Cleaned document content
         private string ExtractMainContent(string fullContent)
         {
             try
@@ -616,7 +660,11 @@ namespace Group17_iCAREAPP.Controllers
             }
         }
 
-        // Method cleans the file content to be edited
+        // Private utility method for cleaning extracted PDF content
+        // Removes system-generated text and formatting
+        // Parameters:
+        //   content: Raw PDF content
+        // Returns: Cleaned content string
         private string CleanContent(string content)
         {
             if (string.IsNullOrWhiteSpace(content))
@@ -649,7 +697,12 @@ namespace Group17_iCAREAPP.Controllers
             return string.Join("\n", lines).Trim();
         }
 
-        // Helper method to return the document type
+        // Private utility method to determine document type
+        // Analyzes title and content to identify if document is prescription or general note
+        // Parameters:
+        //   title: Document title
+        //   content: Document content
+        // Returns: Document type string ("Prescription" or "General")
         private string DetermineDocumentType(string title, string content)
         {
             // Document that is typed is either a prescription or a general note
@@ -662,6 +715,12 @@ namespace Group17_iCAREAPP.Controllers
             return "General";
         }
 
+        // POST: Document/Edit
+        // Processes document updates, creates new version
+        // Updates metadata and maintains modification history
+        // Parameters:
+        //   model: EditDocumentViewModel with updated content
+        // Returns: Redirects to document details on success or returns to view with errors
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Edit(EditDocumentViewModel model)
@@ -781,7 +840,12 @@ namespace Group17_iCAREAPP.Controllers
         }
 
         [HttpPost]
-        //Method works to easily upload files to pdfs
+        // POST: Document/UploadFile
+        // Handles file uploads (images and PDFs)
+        // Converts images to PDF format and stores in system
+        // Parameters: 
+        //   Receives file, patientId, and documentTitle via form data
+        // Returns: JSON result indicating success/failure and redirect URL
         public ActionResult UploadFile()
         {
             try
@@ -920,6 +984,10 @@ namespace Group17_iCAREAPP.Controllers
                 return Json(new { success = false, message = $"Upload error: {ex.Message}" });
             }
         }
+        // Implements proper disposal of database context
+        // Ensures database connections are properly closed
+        // Parameters:
+        //   disposing: Boolean indicating if managed resources should be disposed
         protected override void Dispose(bool disposing)
         {
             if (disposing)

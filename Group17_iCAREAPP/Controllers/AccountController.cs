@@ -16,7 +16,11 @@ namespace Group17_iCAREAPP.Controllers
     {
         private readonly Group17_iCAREDBEntities db = new Group17_iCAREDBEntities();
 
-        //For user login
+        // Handles initial login page access. Checks if user is already authenticated - if so, redirects to home page.
+        // If not authenticated, displays login form with optional return URL for post-login redirect.
+        // Parameters:
+        //   returnUrl: Optional URL to redirect to after successful login
+        // Returns: Login view or redirects to home if already authenticated
         // GET: Account/Login
         public ActionResult Login(string returnUrl)
         {
@@ -33,7 +37,15 @@ namespace Group17_iCAREAPP.Controllers
         // POST: Account/Login
         [HttpPost]
         [ValidateAntiForgeryToken]
-        //Method to check the Login credentials of user
+        // Processes user login attempt by validating credentials against database.
+        // Performs multiple checks including:
+        // - Account expiration verification
+        // - Password validation using SHA-256 hashing
+        // - Role determination (Administrator vs Worker)
+        // Parameters:
+        //   model: LoginViewModel containing username, password and remember-me preference
+        //   returnUrl: Optional URL to redirect to after successful login
+        // Returns: Redirects to home/returnUrl on success, or returns to login view with errors
         public ActionResult Login(LoginViewModel model, string returnUrl)
         {
             if (ModelState.IsValid)
@@ -102,6 +114,8 @@ namespace Group17_iCAREAPP.Controllers
             return View(model);
         }
 
+        // Handles user logout by clearing authentication cookie and session data
+        // Returns: Redirects user back to login page
         // POST: Account/LogOff
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -113,6 +127,10 @@ namespace Group17_iCAREAPP.Controllers
             return RedirectToAction("Login");
         }
 
+        // GET: Account/ChangePassword
+        // Displays the change password form for authenticated users
+        // Requires authentication via [Authorize] attribute
+        // Returns: Change password view
         [Authorize]
         public ActionResult ChangePassword()
         {
@@ -122,7 +140,13 @@ namespace Group17_iCAREAPP.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize]
-        //This method allows the user to change their password
+        // POST: Account/ChangePassword
+        // Processes password change requests for authenticated users
+        // Validates current password, ensures new password meets requirements
+        // Updates password in database using SHA-256 hashing
+        // Parameters:
+        //   model: ChangePasswordViewModel containing current and new password details
+        // Returns: Redirects to home on success, or returns to view with errors
         public ActionResult ChangePassword(ChangePasswordViewModel model)
         {
             if (ModelState.IsValid)
@@ -148,7 +172,11 @@ namespace Group17_iCAREAPP.Controllers
             return View(model);
         }
 
-        // Method hashes the password with SHA - 256 hash formula
+        // Private utility method that implements SHA-256 password hashing
+        // Converts plain text passwords to Base64 encoded hash strings
+        // Parameters:
+        //   password: Plain text password to hash
+        // Returns: Base64 encoded SHA-256 hash of the password
         private string HashPassword(string password)
         {
             using (var sha256 = SHA256.Create())
@@ -159,6 +187,10 @@ namespace Group17_iCAREAPP.Controllers
             }
         }
 
+        // Implements proper disposal of database context
+        // Ensures database connections are properly closed
+        // Parameters:
+        //   disposing: Boolean indicating if managed resources should be disposed
         protected override void Dispose(bool disposing)
         {
             if (disposing)

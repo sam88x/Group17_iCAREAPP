@@ -14,12 +14,26 @@ namespace Group17_iCAREAPP.Controllers
         // Only allows 12 items per page for the card view
         private const int ItemsPerPage = 12;
 
+        // Constructor: Initializes database context for the controller
+        // Creates new instance of Group17_iCAREDBEntities for database operations
         public PaletteController()
         {
             _context = new Group17_iCAREDBEntities();
         }
 
-        // Index allows for many different ways to search through the documents
+        // GET: Palette/Index
+        // Displays searchable, filterable grid/list view of all documents in the system
+        // Includes pagination, sorting, and filtering capabilities
+        // Parameters:
+        //   searchQuery: Optional document name search term
+        //   patientSearchQuery: Optional patient name search term
+        //   sortBy: Sort order (date/name/version/patient)
+        //   filterBy: Filter criteria
+        //   page: Current page number (12 items per page)
+        //   viewMode: Display mode (grid/list)
+        //   showOnlyMyPatients: Toggle to show only current worker's patients
+        // Returns: View with PaletteViewModel containing filtered document list
+        // Redirects to home if worker profile not found
         public ActionResult Index(string searchQuery = "", string patientSearchQuery = "",
             string sortBy = "date", string filterBy = "all", int page = 1,
             string viewMode = "grid", bool showOnlyMyPatients = false)
@@ -115,6 +129,11 @@ namespace Group17_iCAREAPP.Controllers
             return View(viewModel);
         }
 
+
+        // Implements proper disposal of database context
+        // Ensures database connections are properly closed
+        // Parameters:
+        //   disposing: Boolean indicating if managed resources should be disposed
         protected override void Dispose(bool disposing)
         {
             if (disposing)

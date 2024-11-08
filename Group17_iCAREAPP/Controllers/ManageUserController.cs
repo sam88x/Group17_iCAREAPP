@@ -17,6 +17,11 @@ namespace Group17_iCAREAPP.Controllers
     {
         private readonly Group17_iCAREDBEntities db = new Group17_iCAREDBEntities();
 
+        // GET: Admin/ManageUsers
+        // Retrieves and displays list of all system users with their roles and account status
+        // Includes related data: worker info, admin status, passwords, and roles
+        // Transforms data into UserManagementViewModel for display
+        // Returns: View with list of users or redirects to home with error message
         public ActionResult ManageUsers()
         {
             try
@@ -54,7 +59,10 @@ namespace Group17_iCAREAPP.Controllers
             }
         }
 
-        // Displays the form for creating a new user
+        // GET: Admin/CreateUser
+        // Displays form for creating new system user
+        // Prepares dropdown list of available professions (Doctor/Nurse)
+        // Returns: Create view with empty CreateUserViewModel or redirects with error
         [HttpGet]
         public ActionResult CreateUser()
         {
@@ -78,6 +86,13 @@ namespace Group17_iCAREAPP.Controllers
             }
         }
 
+        // POST: Admin/CreateUser
+        // Processes creation of new system user with associated roles and permissions
+        // Creates entries in multiple tables: iCAREUser, UserPassword, iCAREWorker
+        // Uses transaction to ensure data consistency across tables
+        // Parameters:
+        //   model: CreateUserViewModel containing new user details
+        // Returns: Redirects to ManageUsers on success or returns to view with errors
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult CreateUser(CreateUserViewModel model)
@@ -201,7 +216,9 @@ namespace Group17_iCAREAPP.Controllers
         //    }
         //}
 
-        // Helper method creates list of profession for user to select when opening form
+        // Private utility method to prepare profession dropdown list
+        // Sets up ViewBag.Professions with Doctor and Nurse options
+        // Used by both Create and Edit views
         private void PrepareViewBagForCreateUser()
         {
             ViewBag.Professions = new SelectList(new[]
@@ -212,6 +229,12 @@ namespace Group17_iCAREAPP.Controllers
         }
 
 
+        // GET: Admin/EditUser
+        // Loads existing user data for editing
+        // Includes related worker and password information
+        // Parameters:
+        //   id: User ID to edit
+        // Returns: Edit view with populated EditUserViewModel or error response
         [HttpGet]
         public ActionResult EditUser(string id)
         {
@@ -257,6 +280,12 @@ namespace Group17_iCAREAPP.Controllers
             return View(model);
         }
 
+        // POST: Admin/EditUser
+        // Processes updates to existing user information
+        // Updates user details, profession, and optionally changes password
+        // Parameters:
+        //   model: EditUserViewModel containing updated user information
+        // Returns: Redirects to ManageUsers on success or returns to view with errors
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult EditUser(EditUserViewModel model)
@@ -328,7 +357,12 @@ namespace Group17_iCAREAPP.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        // Prevents user from being able to login
+
+        // POST: Admin/DeactivateUser
+        // Deactivates user account by setting expiration date to current time
+        // Parameters:
+        //   id: ID of user to deactivate
+        // Returns: Redirects to ManageUsers
         public ActionResult DeactivateUser(string id)
         {
             var userPassword = db.UserPassword.Find(id);
@@ -340,8 +374,12 @@ namespace Group17_iCAREAPP.Controllers
             }
             return RedirectToAction("ManageUsers");
         }
-        
-        // Helper method hashes the password with SHA-256 encryption
+
+        // Private utility method for password hashing
+        // Implements SHA-256 encryption for secure password storage
+        // Parameters:
+        //   password: Plain text password to hash
+        // Returns: Base64 encoded hash string
         private string HashPassword(string password)
         {
             using (var sha256 = SHA256.Create())
@@ -351,6 +389,10 @@ namespace Group17_iCAREAPP.Controllers
             }
         }
 
+        // Implements proper disposal of database context
+        // Ensures database connections are properly closed
+        // Parameters:
+        //   disposing: Boolean indicating if managed resources should be disposed
         protected override void Dispose(bool disposing)
         {
             if (disposing)

@@ -11,6 +11,12 @@ namespace Group17_iCAREAPP.Controllers
     {
         private readonly Group17_iCAREDBEntities db = new Group17_iCAREDBEntities();
 
+        // GET: MyBoard/Index
+        // Displays personalized dashboard for authenticated medical staff (doctors/nurses)
+        // Validates user's role and permissions
+        // Retrieves worker profile and their assigned patients
+        // Includes error handling for invalid/missing profiles
+        // Returns: Dashboard view with MyBoardViewModel or redirects to home with error
         [Authorize]
         public ActionResult Index()
         {
@@ -65,7 +71,13 @@ namespace Group17_iCAREAPP.Controllers
             }
         }
 
-        // Helper function finds the list of patients that are currently assigned to that worker
+        // Private utility method to retrieve active patients for a worker
+        // Gets all patients the worker has treated, ordered by most recent treatment
+        // Includes treatment history and document count for each patient
+        // Parameters:
+        //   workerId: ID of the worker whose patients to retrieve
+        // Returns: List of PatientBoardInfo objects with patient details and metrics
+        // Falls back to empty list on error
         private dynamic GetActivePatients(string workerId)
         {
             try
@@ -105,6 +117,10 @@ namespace Group17_iCAREAPP.Controllers
             }
         }
 
+        // Implements proper disposal of database context
+        // Ensures database connections are properly closed
+        // Parameters:
+        //   disposing: Boolean indicating if managed resources should be disposed
         protected override void Dispose(bool disposing)
         {
             if (disposing)
