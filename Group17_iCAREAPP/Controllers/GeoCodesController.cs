@@ -44,7 +44,8 @@ namespace Group17_iCAREAPP.Controllers
         }
 
 
-
+        // GET: TreatmentRecords/AssignWholeArea
+        // Takes the id of a geographic area and returns a view that allows the user to assign all patients in the area.
         public ActionResult AssignWholeArea(string id)
         {
             Debug.WriteLine("==========================================");
@@ -59,19 +60,21 @@ namespace Group17_iCAREAPP.Controllers
 
             try
             {
+                // Find all patients in the geographical area
                 var patientRecords = db.PatientRecord
                     .Where(pr => pr.geographicalUnit == id)
                     .ToList();
 
                 Debug.WriteLine($"Found {patientRecords.Count} patients in area");
 
+                // Find current user's id
                 var user = db.UserPassword.FirstOrDefault(u => u.userName == User.Identity.Name);
                 Debug.WriteLine($"Current user name: {User.Identity.Name}");
 
                 if (user != null)
                 {
+                    // send user's id using ViewBag
                     ViewBag.UserId = user.ID;
-                    ViewBag.WorkerId = user.ID;
                     Debug.WriteLine($"User/Worker ID set: {user.ID}");
                 }
                 else
@@ -82,7 +85,9 @@ namespace Group17_iCAREAPP.Controllers
                 var worker = db.iCAREWorker.FirstOrDefault(w => w.ID == user.ID);
                 if (worker != null)
                 {
+                    //send worker's id and roleName using ViewBag
                     var roleName = db.UserRole.FirstOrDefault(r => r.ID == worker.userPermission)?.roleName;
+                    ViewBag.WorkerId = user.ID;
                     ViewBag.roleName = roleName;
                     Debug.WriteLine($"Role name set: {roleName}");
                 }
@@ -91,10 +96,14 @@ namespace Group17_iCAREAPP.Controllers
                     Debug.WriteLine("Warning: Worker not found");
                 }
 
+                //send geoDescription
                 ViewBag.GeoDescription = db.GeoCodes.FirstOrDefault(g => g.ID == id)?.description;
                 Debug.WriteLine($"Area description: {ViewBag.GeoDescription}");
 
                 Debug.WriteLine("AssignWholeArea completed successfully");
+
+                //AssignWholeArea view can use patientRecord model
+                //The pathetRecords mean the patients in the geographical area.
                 return View(patientRecords);
             }
             catch (Exception ex)

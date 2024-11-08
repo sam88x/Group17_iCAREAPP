@@ -1,10 +1,13 @@
-﻿@model List<Group17_iCAREAPP.Models.PatientRecord>
+﻿<!--Geocodes/Details-->
+
+@model List<Group17_iCAREAPP.Models.PatientRecord>
 
 @Html.AntiForgeryToken()
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <div class="container-fluid py-4">
+    <!--The design of the top of this page with GeoDescription.-->
     <div class="location-header mb-4">
         <div class="d-flex justify-content-between align-items-center">
             <div class="location-info">
@@ -20,6 +23,7 @@
     </div>
 
     <div class="row g-4">
+        <!--Display all patients' records in the geographical area'-->
         @foreach (var record in Model)
         {
             <div class="col-md-6 col-lg-4">
@@ -36,6 +40,7 @@
                         </div>
                     </div>
                     <div class="patient-actions">
+                        <!--Display Details and Assign using Modal-->
                         <button class="btn btn-info" onclick="openModal('@record.ID','@record.name')">
                             <i class="fas fa-info-circle me-2"></i>Details
                         </button>
@@ -49,7 +54,7 @@
     </div>
 </div>
 
-<!-- Modal -->
+<!-- THe design of Modal Frame-->
 <div class="modal-overlay fade" id="modalOverlay"></div>
 <div class="custom-modal" id="detailModal">
     <div class="modal-content">
@@ -75,6 +80,7 @@
         font-weight: 600;
     }
 
+    /*page styles*/
     .patient-card {
         background: white;
         border-radius: 0.5rem;
@@ -83,10 +89,10 @@
         transition: transform 0.2s, box-shadow 0.2s;
     }
 
-        .patient-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
+    .patient-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
 
     .patient-info {
         display: flex;
@@ -118,11 +124,11 @@
         gap: 0.5rem;
     }
 
-        .patient-actions .btn {
-            flex: 1;
-            padding: 0.5rem;
-            font-size: 0.9rem;
-        }
+    .patient-actions .btn {
+        flex: 1;
+        padding: 0.5rem;
+        font-size: 0.9rem;
+    }
 
     /* Modal Styles */
     .custom-modal {
@@ -135,7 +141,7 @@
         z-index: 1050;
         display: none;
         width: 90%;
-        max-width: 600px; /* Increased from 500px */
+        max-width: 600px; 
         box-shadow: 0 4px 20px rgba(0,0,0,0.15);
     }
 
@@ -168,10 +174,10 @@
         transition: all 0.2s;
     }
 
-        .form-control:focus {
-            border-color: #80bdff;
-            box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
-        }
+    .form-control:focus {
+        border-color: #80bdff;
+        box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+    }
 
     .modal-actions {
         margin-top: 1.5rem;
@@ -233,22 +239,25 @@
         border-color: #28a745;
     }
 
-        .btn-success:hover:not(:disabled) {
-            background-color: #218838;
-            border-color: #1e7e34;
-        }
+    .btn-success:hover:not(:disabled) {
+        background-color: #218838;
+        border-color: #1e7e34;
+    }
 
-        .btn-success:disabled {
-            background-color: #6c757d;
-            border-color: #6c757d;
-            cursor: not-allowed;
-        }
+    .btn-success:disabled {
+        background-color: #6c757d;
+        border-color: #6c757d;
+        cursor: not-allowed;
+    }
 </style>
 
 <script>
+
+// Get description to assign the patient and worker.
 function openAssignModal(patientId, workerId) {
     var token = $('input[name="__RequestVerificationToken"]').val();
 
+    // Send Post request to check assign to check if the patient and worker can be assigned.
     $.ajax({
         type: "POST",
         url: '@Url.Action("CheckAssignability", "TreatmentRecords")',
@@ -257,8 +266,11 @@ function openAssignModal(patientId, workerId) {
             __RequestVerificationToken: token
         },
         success: function (response) {
+            // If success, get description from the worker in the modal.
             console.log("CheckAssignability response:", response); // For debugging
             if (response.success) {
+                // Other information for the treatmentRecord is hidden input. 
+                // Call the assignWorkerSubmit() function when the description is entered and the Assign Patient button is pressed.
                 document.getElementById("modalContent").innerHTML = `
                     <div class="assignment-form">
                         <h4 class="mb-3">Assign Patient</h4>
@@ -285,6 +297,7 @@ function openAssignModal(patientId, workerId) {
                         </div>
                     </div>`;
             } else {
+            // If assigning is not possible, display the reason. 
                 document.getElementById("modalContent").innerHTML = `
                     <div class="assignment-error">
                         <h4 class="mb-3">Unable to Assign</h4>
@@ -313,6 +326,7 @@ function openAssignModal(patientId, workerId) {
     });
 }
 
+    // To view the patient's information in detail, send a request to the controller.
     function openModal(patientId, patientName) {
         fetch(`/TreatmentRecords/GetPatientRecord?patientId=${patientId}`)
             .then(response => response.json())
@@ -358,16 +372,8 @@ function openAssignModal(patientId, workerId) {
          document.getElementById("confirmAssignButton").disabled = description.trim() === "";
     }
 
-    /*
-    function assignWorker(roleName)
-    {
-        if (roleName === "Nurse")
-            assignNurse();
-        else if (roleName === "Doctor")
-            assignDoctor()
-    */
 
-
+// Send a request to assign. 
 function assignWorkerSubmit(roleName) {
     const patientId = document.getElementById("patientIdInput").value;
     const description = document.getElementById("descriptionInput").value;

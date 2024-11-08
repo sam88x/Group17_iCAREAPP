@@ -47,6 +47,11 @@ namespace Group17_iCAREAPP.Controllers
             return View();
         }
 
+
+        // POST: Check if the patient passed as argument(patientId, PK) can be assigned to the current user.
+        // [Detail]
+        // Takes the patient's id and traverse the TreatmentRecord Table to check if it is already assigned.
+        // It it is not assigned and the PatientAssignmentStatus table doesn't contain the patient's information, creat an information with the patientId.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public JsonResult CheckAssignability(string patientId)
@@ -60,6 +65,7 @@ namespace Group17_iCAREAPP.Controllers
                     return Json(new { success = false, message = "User not found." });
                 }
 
+                // Get current worker, using current user's ID,
                 var worker = db.iCAREWorker
                     .Include(w => w.UserRole)
                     .FirstOrDefault(w => w.ID == user.ID);
@@ -102,6 +108,8 @@ namespace Group17_iCAREAPP.Controllers
                     db.SaveChanges();
                 }
 
+                // Check to determine if the patient can be assign to the current user.
+                // Check the user's role(Doctor / Nurse) and the number of Doctor and Nurses currently assigned to the patient.
                 if (worker.UserRole.roleName == "Doctor")
                 {
                     if (assignmentStatus.AssignmentStatus == "Assigned")
@@ -144,6 +152,7 @@ namespace Group17_iCAREAPP.Controllers
             return Json(patientData, JsonRequestBehavior.AllowGet);
         }
 
+        // GET : 
         public ActionResult AddTreatmentRecord(string patientId)
         {
             ViewBag.patientId = patientId;
@@ -189,8 +198,8 @@ namespace Group17_iCAREAPP.Controllers
 
         }
 
+        // POST : 
         [HttpPost]
-        //[ValidateAntiForgeryToken]
         public ActionResult AddTreatmentRecord([Bind(Include = "description,treatmentDate,patientID,workerID,treatmentID")] TreatmentRecord treatmentRecord)
         {
             if (ModelState.IsValid)
@@ -208,7 +217,7 @@ namespace Group17_iCAREAPP.Controllers
 
         }
 
-
+        // Assign a patient when the current user is a Nurse.
         private void assignNurse(string patientId)
         {
             var assignmentStatus = db.PatientAssignmentStatus
@@ -231,6 +240,7 @@ namespace Group17_iCAREAPP.Controllers
             db.SaveChanges();
         }
 
+        // Assign a patient when the current worker is a Doctor.
         private void assignDoctor(string patientId)
         {
             var assignmentStatus = db.PatientAssignmentStatus
@@ -240,6 +250,7 @@ namespace Group17_iCAREAPP.Controllers
             db.SaveChanges();
         }
 
+        // Assign Patients using treatmentRecord depending on the worker's role
         [HttpPost]
         public JsonResult AssignPatient([Bind(Include = "treatmentID,description,treatmentDate,patientID,workerID")] TreatmentRecord treatmentRecord, string roleName)
         {
