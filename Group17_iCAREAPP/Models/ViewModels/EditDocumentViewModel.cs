@@ -1,4 +1,9 @@
 ﻿// Models/ViewModels/EditDocumentViewModel.cs
+/* 
+ * The EditDocumentViewModel class is the viewmodel that manages the data required for the edit Document form. 
+ * This class contains the patient's Id and more information about the patient, the document's Id, title, content, type, and version to determine view. 
+ */
+
 using System;
 using System.ComponentModel.DataAnnotations;
 

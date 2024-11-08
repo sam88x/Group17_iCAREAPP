@@ -1,4 +1,9 @@
 ﻿// Models/ViewModels/MyBoardViewModel.cs
+/* 
+ * The MyBoardViewModel class is the viewmodel that manages the data required for the Myboard. 
+ * This class contains the Worker, PatientRecords' list, TreatmentRecords' list. 
+ */
+
 using System;
 using System.Collections.Generic;
 

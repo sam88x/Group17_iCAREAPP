@@ -1,4 +1,9 @@
 ﻿// Models/ViewModels/CreateDocumentViewModel.cs
+/* The CreateDocumentViewModel class is the viewmodel that manages the data required for the create Document form. 
+ * This class contains the patient's Id, document's title, content, type, ImageFile and DrugList.
+ */
+
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
