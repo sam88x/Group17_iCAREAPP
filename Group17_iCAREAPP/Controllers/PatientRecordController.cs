@@ -34,19 +34,36 @@ namespace Group17_iCAREAPP.Controllers
         // POST: PatientRecords/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create([Bind(Include = "Name,Address,Date Of Birth,Height,Weight,Blood Group,bedID,Treatment Area,Geographical Unit")] PatientRecord patientRecord)
+        public ActionResult Create([Bind(Include = "name,address,dateOfBirth,height,weight,bloodGroup,bedID,treatmentArea,geographicalUnit")] PatientRecord patientRecord)
         {
             if (ModelState.IsValid)
             {
-                patientRecord.ID = Guid.NewGuid().ToString(); // Generates unqique identifier string
-                patientRecord.modifierID = User.Identity.Name;
+                try
+                {
+                    // Get the iCAREWorker ID from the current user's username
+                    var user = db.UserPassword.FirstOrDefault(u => u.userName == User.Identity.Name);
+                    if (user == null)
+                    {
+                        ModelState.AddModelError("", "Current user not found in the system.");
+                        ViewBag.geographicalUnit = new SelectList(db.GeoCodes, "ID", "description", patientRecord.geographicalUnit);
+                        return View(patientRecord);
+                    }
 
-                db.PatientRecord.Add(patientRecord);
-                db.SaveChanges();
-                // Returns to the list of patients once creation has occurred
-                TempData["Success"] = "Patient record created successfully.";
-                return RedirectToAction("Index");
+                    patientRecord.ID = Guid.NewGuid().ToString();
+                    patientRecord.modifierID = user.ID;  // Use the correct ID instead of username
+
+                    db.PatientRecord.Add(patientRecord);
+                    db.SaveChanges();
+
+                    TempData["Success"] = "Patient record created successfully.";
+                    return RedirectToAction("Index");
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", "Error creating patient record: " + ex.Message);
+                }
             }
+
             ViewBag.geographicalUnit = new SelectList(db.GeoCodes, "ID", "description", patientRecord.geographicalUnit);
             return View(patientRecord);
         }

@@ -12,7 +12,7 @@
                 <h3 class="card-title">Create Patient Record</h3>
             </div>
             <div class="card-body">
-                @using (Html.BeginForm("Create", "PatientRecords", FormMethod.Post, new { @class = "form" }))
+                @using (Html.BeginForm("Create", "PatientRecord", FormMethod.Post, new { @class = "form" }))
                 {
                     @Html.AntiForgeryToken()
                     <!-- Prompts for the name -->
