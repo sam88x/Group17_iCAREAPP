@@ -1,4 +1,7 @@
 ﻿// File was tested, but ended up not being used
+/* AssignPatient(), GET
+ * AssignPatient(AssignPatientRequest model), POST
+ */
 
 using System;
 using System.Web.Mvc;

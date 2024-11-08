@@ -1,4 +1,34 @@
-﻿using System;
+﻿/* /TreatmentRecords/
+ * 
+ * Index() :
+ * The first index pate
+ * 
+ * Details(string id) :
+ * The detail page about treatmentRecord's id
+ * 
+ * Create(), GET :
+ * The Auto-generated file to create treatmentRecord
+ * 
+ * CheckAssignability(string patientId), POST :
+ * The complex operation in the controller to check assignabtility about the patient and the worker.
+ * Send Json file to the view.
+ * 
+ * GetPatientRecord(string patientId), GET :
+ * Get patientRecord using patinet's Id.
+ * 
+ * AddTreatmentRecord(string patientId), GET :
+ * Send other information to the view to make the treatmentRecord.
+ * 
+ * assignNurse(string patientId), assignDoctor(string patientId)
+ * They have used for testing, not used.
+ * 
+ * AssignPatient([Bind(Include = "treatmentID,description,treatmentDate,patientID,workerID")] TreatmentRecord treatmentRecord, string roleName), POST :
+ * Assign the patient using all information about patientRecord, the description of it is entered from view.
+ * The roleName is used to assign to seperate Nurse's and Doctor's state.
+ * 
+ */
+
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
@@ -17,7 +47,8 @@ namespace Group17_iCAREAPP.Controllers
         private Group17_iCAREDBEntities db = new Group17_iCAREDBEntities();
 
         // GET: TreatmentRecords
-        //Creates list of Treatment Records
+        // Creates list of Treatment Records
+        // return: Send the treatmentRecords as a list to the view
         public ActionResult Index()
         {
             var treatmentRecord = db.TreatmentRecord.Include(t => t.iCAREWorker).Include(t => t.PatientRecord);
@@ -26,6 +57,8 @@ namespace Group17_iCAREAPP.Controllers
 
 
         // GET: TreatmentRecords/Details/5
+        // parameter: id / treatmentRecord's id
+        // return: Send the treatmentRecord to the View
         public ActionResult Details(string id)
         {
             if (id == null)
@@ -41,6 +74,7 @@ namespace Group17_iCAREAPP.Controllers
         }
 
         // GET: TreatmentRecords/Create
+        // return: Send the worker and patient's ID.
         public ActionResult Create()
         {
             ViewBag.workerID = new SelectList(db.iCAREWorker, "ID", "profession");
@@ -50,6 +84,8 @@ namespace Group17_iCAREAPP.Controllers
 
 
         // POST: Check if the patient passed as argument(patientId, PK) can be assigned to the current user.
+        // parameter: patientId
+        // return: the Json file about assignability.
         // [Detail]
         // Takes the patient's id and traverse the TreatmentRecord Table to check if it is already assigned.
         // It it is not assigned and the PatientAssignmentStatus table doesn't contain the patient's information, creat an information with the patientId.
@@ -138,6 +174,9 @@ namespace Group17_iCAREAPP.Controllers
             }
         }
 
+        // GET
+        // parameter: patientId / patient's Id
+        // return: Send the patient's Data to the View
         [HttpGet]
         public ActionResult GetPatientRecord(string patientId)
         {
@@ -153,7 +192,9 @@ namespace Group17_iCAREAPP.Controllers
             return Json(patientData, JsonRequestBehavior.AllowGet);
         }
 
-        // GET : 
+        // GET
+        // parameter: patientId
+        // return: Send the other information(patientId, Name, workerId, date, treatmentId) to make a treatmentRecord, using the ViewBag. 
         public ActionResult AddTreatmentRecord(string patientId)
         {
             ViewBag.patientId = patientId;
@@ -180,8 +221,9 @@ namespace Group17_iCAREAPP.Controllers
 
 
         // POST: TreatmentRecords/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to, for 
-        // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
+        // parameter : treatmentRecord
+        // return : Send the treatmentRecord to the view.
+        // auto-generated
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Create([Bind(Include = "treatmentID,description,treatmentDate,patientID,workerID")] TreatmentRecord treatmentRecord)
@@ -199,7 +241,8 @@ namespace Group17_iCAREAPP.Controllers
 
         }
 
-        // POST : 
+        // POST
+        // It is not used, use AssignPatient function instead of this.
         [HttpPost]
         public ActionResult AddTreatmentRecord([Bind(Include = "description,treatmentDate,patientID,workerID,treatmentID")] TreatmentRecord treatmentRecord)
         {
@@ -219,6 +262,7 @@ namespace Group17_iCAREAPP.Controllers
         }
 
         // Assign a patient when the current user is a Nurse.
+        // parameter : patientId
         private void assignNurse(string patientId)
         {
             var assignmentStatus = db.PatientAssignmentStatus
@@ -242,6 +286,7 @@ namespace Group17_iCAREAPP.Controllers
         }
 
         // Assign a patient when the current worker is a Doctor.
+        // parameter : patientId
         private void assignDoctor(string patientId)
         {
             var assignmentStatus = db.PatientAssignmentStatus
@@ -252,6 +297,8 @@ namespace Group17_iCAREAPP.Controllers
         }
 
         // Assign Patients using treatmentRecord depending on the worker's role
+        // parameter: treatmentRecord, roleName
+        // return: Json file about success information
         [HttpPost]
         public JsonResult AssignPatient([Bind(Include = "treatmentID,description,treatmentDate,patientID,workerID")] TreatmentRecord treatmentRecord, string roleName)
         {
@@ -397,6 +444,7 @@ namespace Group17_iCAREAPP.Controllers
 
             return View(treatmentRecord);
         }
+
         // GET: TreatmentRecords/Delete/5
         public ActionResult Delete(string id)
         {
