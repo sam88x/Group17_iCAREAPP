@@ -16,9 +16,11 @@
     <div class="assignment-header mb-4">
         <div class="d-flex justify-content-between align-items-center">
             <div class="d-flex align-items-center">
+                <!-- Can assign all patients that are available -->
                 <button class="btn btn-success me-3" id="assignAll" onclick="openAssignAllModal()" disabled>
                     <i class="fas fa-users me-2"></i>Assign All
                 </button>
+                <!-- Can return to list of geo locations -->
                 <a class="btn btn-outline-primary" id="backButton" href="@Url.Action("Index")">
                     <i class="fas fa-arrow-left me-2"></i>Back
                 </a>
@@ -33,6 +35,7 @@
     </div>
 
     <div class="row g-4">
+        <!-- Creates card with all patients in that area -->
         @foreach (var patient in Model)
         {
             <div class="col-md-6 col-lg-4">
@@ -43,6 +46,7 @@
                             <i class="fas fa-clinic-medical me-2"></i>@patient.treatmentArea
                         </p>
                     </div>
+                    <!-- Makes it look like it's loading when check assignability status -->
                     <div class="assignment-status">
                         <span class="status-indicator" id="result-@patient.ID">
                             <i class="fas fa-spinner fa-spin me-2"></i>Checking assignability...
@@ -299,6 +303,7 @@
                         .html(`<i class="fas fa-times-circle me-2"></i>${response.message}`);
                 }
             },
+            // Throws exception if anything goes wrong during the check
             error: function () {
                 $(`#result-${patientId}`)
                     .removeClass('success')
@@ -353,12 +358,13 @@
         document.getElementById("detailModal").style.display = "none";
     }
 
+    // Cannot assign any patients if the list is empty
     function assignWholeSubmit() {
         if (successPatients.length === 0) {
             showMessage('Warning', 'No patients available to assign', 'warning');
             return;
         }
-
+        // Allows you to enter the treatment record for many patients at once
         const description = document.getElementById("descriptionInput").value;
         if (!description.trim()) {
             showMessage('Warning', 'Please enter a treatment description', 'warning');

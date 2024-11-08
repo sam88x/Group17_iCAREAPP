@@ -6,7 +6,7 @@
             <i class="fas fa-hospital-alt me-2"></i>iCARE Board
         </h2>
     </div>
-
+    <!-- Shows table with all geo locations in hosptial system -->
     <div class="card shadow-sm">
         <div class="card-header bg-white py-3">
             <h5 class="mb-0">Geographical Areas Overview</h5>
@@ -22,22 +22,26 @@
                     </tr>
                 </thead>
                 <tbody>
+                    <!-- Table contains info about each location -->
                     @foreach (var item in Model)
                     {
                         <tr>
                             <td>
+                                <!-- Description of location -->
                                 <div class="d-flex align-items-center">
                                     <i class="fas fa-map-marker-alt text-primary me-2"></i>
                                     <span>@item.description</span>
                                 </div>
                             </td>
                             <td>
+                                <!-- Count of pateints in that location -->
                                 <span class="badge bg-info">@item.PatientRecord1.Count</span>
                             </td>
                             <td>
                                 <small class="text-muted">@item.ID</small>
                             </td>
                             <td>
+                                <!-- Two options to either look at patients in that location or try to assign all patients -->
                                 <div class="btn-group" role="group">
                                     <a href="@Url.Action("Details", new { id = item.ID })"
                                        class="btn btn-primary btn-sm">
@@ -167,6 +171,7 @@
 @section Scripts {
     <script>
         $(document).ready(function () {
+            // Settings for datatable
             $('#iCAREBOARDTable').DataTable({
                 "ordering": true,
                 "paging": true,

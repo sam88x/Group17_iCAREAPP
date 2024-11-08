@@ -1,4 +1,6 @@
-﻿using System;
+﻿// File was tested, but ended up not being used
+
+using System;
 using System.Web.Mvc;
 using Group17_iCAREAPP.Models;
 using System.Threading.Tasks;
@@ -11,6 +13,7 @@ namespace Group17_iCAREAPP.Controllers
     {
         private readonly Group17_iCAREDBEntities db = new Group17_iCAREDBEntities();
 
+        // Class that aligns patients and workers
         public class AssignPatientRequest
         {
             [Required]

@@ -15,19 +15,19 @@
                 @using (Html.BeginForm("Create", "PatientRecords", FormMethod.Post, new { @class = "form" }))
                 {
                     @Html.AntiForgeryToken()
-
+                    <!-- Prompts for the name -->
                     <div class="form-group mb-3">
                         @Html.LabelFor(m => m.name, "Patient Name", new { @class = "form-label" })
                         @Html.TextBoxFor(m => m.name, new { @class = "form-control", required = "required" })
                         @Html.ValidationMessageFor(m => m.name, "", new { @class = "text-danger" })
                     </div>
-
+                    <!-- Prompts for the date of birth with a calendar -->
                     <div class="form-group mb-3">
                         @Html.LabelFor(m => m.dateOfBirth, "Date of Birth", new { @class = "form-label" })
                         @Html.TextBoxFor(m => m.dateOfBirth, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date", required = "required" })
                         @Html.ValidationMessageFor(m => m.dateOfBirth, "", new { @class = "text-danger" })
                     </div>
-
+                    <!-- Prompts for height and weight -->
                     <div class="row mb-3">
                         <div class="col-md-6">
                             @Html.LabelFor(m => m.height, "Height (cm)", new { @class = "form-label" })
@@ -40,7 +40,7 @@
                             @Html.ValidationMessageFor(m => m.weight, "", new { @class = "text-danger" })
                         </div>
                     </div>
-
+                    <!-- Dropdown for different blood types -->
                     <div class="form-group mb-3">
                         @Html.LabelFor(m => m.bloodGroup, "Blood Group", new { @class = "form-label" })
                         @Html.DropDownListFor(m => m.bloodGroup,
@@ -48,13 +48,13 @@
                             "Select Blood Group", new { @class = "form-control" })
                         @Html.ValidationMessageFor(m => m.bloodGroup, "", new { @class = "text-danger" })
                     </div>
-
+                    <!-- Prompt for the address of the person -->
                     <div class="form-group mb-3">
                         @Html.LabelFor(m => m.address, "Address", new { @class = "form-label" })
                         @Html.TextAreaFor(m => m.address, new { @class = "form-control", rows = "3" })
                         @Html.ValidationMessageFor(m => m.address, "", new { @class = "text-danger" })
                     </div>
-
+                    <!-- Prompt for the treatment area and bed id-->
                     <div class="row mb-3">
                         <div class="col-md-6">
                             @Html.LabelFor(m => m.treatmentArea, "Treatment Area", new { @class = "form-label" })
@@ -67,7 +67,7 @@
                             @Html.ValidationMessageFor(m => m.bedID, "", new { @class = "text-danger" })
                         </div>
                     </div>
-
+                    <!-- Dropdown for geographical areas -->
                     <div class="form-group mb-3">
                         @Html.LabelFor(m => m.geographicalUnit, "Geographical Unit", new { @class = "form-label" })
                         @Html.DropDownListFor(m => m.geographicalUnit, (SelectList)ViewBag.geographicalUnit,

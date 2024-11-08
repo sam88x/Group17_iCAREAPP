@@ -9,6 +9,7 @@
         <div class="card-body">
             <div class="row">
                 <div class="col-md-6">
+                    <!-- Top part of patient record includes all personal infromation -->
                     <h4>Personal Information</h4>
                     <dl class="row">
                         <dt class="col-sm-4">Patient ID</dt>
@@ -30,6 +31,7 @@
                         <dd class="col-sm-8">@(Model.weight.HasValue ? Model.weight.Value.ToString().Trim() : "Not measured")</dd>
                     </dl>
                 </div>
+                <!-- Second part of patient details shows information about why they are there and the documentation associated -->
                 <div class="col-md-6">
                     <h4>Treatment Information</h4>
                     <dl class="row">
@@ -44,7 +46,7 @@
                     </dl>
                 </div>
             </div>
-
+            <!-- Includes list of all prior treatments -->
             @if (Model.TreatmentRecord.Any())
             {
                 <div class="mt-4">
@@ -59,6 +61,7 @@
                                 </tr>
                             </thead>
                             <tbody>
+                                <!-- Shows all treatments with most recent at top -->
                                 @foreach (var treatment in Model.TreatmentRecord.OrderByDescending(t => t.treatmentDate))
                                 {
                                     <tr>
@@ -66,6 +69,7 @@
                                         <td>@treatment.description</td>
                                         <td>@treatment.iCAREWorker.iCAREUser.name</td>
                                         <td>
+                                            <!-- Allows user to edit the treatment record -->
                                             <a href="@Url.Action("Edit", "TreatmentRecords", new { id = treatment.treatmentID })"
                                                class="btn btn-warning" title="Edit Treatment Record">
                                                 Edit
@@ -79,7 +83,7 @@
                 </div>
             }
 
-            <!-- Updated Documents Section -->
+            <!-- Documents Section where the documents can be viewed -->
             <div class="card mt-4">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h4 class="mb-0">
@@ -109,11 +113,13 @@
                                     </tr>
                                 </thead>
                                 <tbody>
+                                    <!-- Table with documents -->
                                     @foreach (var doc in Model.DocumentMetadata.OrderByDescending(d => d.dateOfCreation))
                                     {
                                         <tr>
                                             <td>@doc.docName</td>
                                             <td>
+                                                <!-- Labels for types of documents -->
                                                 @if (doc.docName.StartsWith("Uploaded:"))
                                                 {
                                                     <span class="badge bg-warning">Uploaded File</span>
@@ -136,6 +142,7 @@
                                                 }
                                             </td>
                                             <td>
+                                                <!-- Allows user to view document of any type -->
                                                 <div class="btn-group">
                                                     <a href="@Url.Action("Details", "Document", new { id = doc.docID })"
                                                        class="btn btn-sm btn-info" title="View Details">
@@ -145,6 +152,7 @@
                                                        class="btn btn-sm btn-primary" title="View Document" target="_blank">
                                                         <i class="fas fa-file-pdf"></i>
                                                     </a>
+                                                    <!-- Only general notes can be edited -->
                                                     @if (!doc.docName.StartsWith("Uploaded:") && !doc.docName.StartsWith("Prescription"))
                                                     {
                                                         <a href="@Url.Action("Edit", "Document", new { id = doc.docID })"
