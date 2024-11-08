@@ -7,6 +7,7 @@
             <h3>Document Management</h3>
             <div class="text-muted">
                 <div class="row">
+                    <!-- Includes information about the patient -->
                     <div class="col-md-4">
                         <strong>Patient:</strong> @Model.PatientName
                     </div>
@@ -29,6 +30,7 @@
             {
                 @Html.AntiForgeryToken()
                 @Html.HiddenFor(m => m.PatientID)
+                <!-- Allows user to browse computer for files -->
                 <div class="row align-items-end">
                     <div class="col-md-6">
                         <div class="form-group">
@@ -37,6 +39,7 @@
                                    accept=".pdf,.jpg,.jpeg,.png,.gif" required />
                         </div>
                     </div>
+                    <!-- Text box for the desired file name -->
                     <div class="col-md-4">
                         <div class="form-group">
                             <label class="form-label">Document Title</label>
@@ -52,6 +55,7 @@
             }
 
             <!-- File Preview Section -->
+            <!-- Only for images that are not already PDFs -->
             <div id="filePreviewSection" class="mt-3" style="display: none;">
                 <div class="card">
                     <div class="card-body">
@@ -78,47 +82,50 @@
                 @Html.HiddenFor(m => m.PatientID)
                 @Html.HiddenFor(m => m.IsDoctor)
 
-                <div class="form-group mb-3">
-                    @Html.LabelFor(m => m.DocumentType, "Document Type", new { @class = "form-label" })
-                    @if (Model.IsDoctor)
+        <div class="form-group mb-3">
+            @Html.LabelFor(m => m.DocumentType, "Document Type", new { @class = "form-label" })
+            @if (Model.IsDoctor)
+            {
+                <!-- Doctor has option to write a general note or a prescription -->
+                @Html.DropDownListFor(m => m.DocumentType,
+                    new SelectList(new[]
                     {
-                        @Html.DropDownListFor(m => m.DocumentType,
-                            new SelectList(new[]
-                            {
-                                new { Value = "General", Text = "General Note" },
-                                new { Value = "Prescription", Text = "Prescription" }
-                            }, "Value", "Text"),
-                            new { @class = "form-control", id = "documentType" })
-                    }
-                    else
+                        new { Value = "General", Text = "General Note" },
+                        new { Value = "Prescription", Text = "Prescription" }
+                    }, "Value", "Text"),
+                    new { @class = "form-control", id = "documentType" })
+            }
+            else
+            {
+                <!-- Nurse can only make a general note-->
+                @Html.DropDownListFor(m => m.DocumentType,
+                    new SelectList(new[]
                     {
-                        @Html.DropDownListFor(m => m.DocumentType,
-                            new SelectList(new[]
-                            {
-                                new { Value = "General", Text = "General Note" }
-                            }, "Value", "Text"),
-                            new { @class = "form-control", id = "documentType" })
+                        new { Value = "General", Text = "General Note" }
+                    }, "Value", "Text"),
+                    new { @class = "form-control", id = "documentType" })
+            }
+            @Html.ValidationMessageFor(m => m.DocumentType, "", new { @class = "text-danger" })
+        </div>
+
+        <div class="form-group mb-3">
+            @Html.LabelFor(m => m.DocumentTitle, new { @class = "form-label" })
+            <div id="standardTitleInput">
+                @Html.TextBoxFor(m => m.DocumentTitle, new { @class = "form-control" })
+            </div>
+            <!-- Gathers all durgs in the database and allows for a search of them -->
+            <div id="prescriptionTitleSelect" style="display:none; position: relative;">
+                <select id="prescriptionTitle" class="form-control">
+                    <option></option>
+                    @foreach (var drug in Model.DrugsList)
+                    {
+                        <option value="@drug.Value">@drug.Text</option>
                     }
-                    @Html.ValidationMessageFor(m => m.DocumentType, "", new { @class = "text-danger" })
-                </div>
-
-                <div class="form-group mb-3">
-                    @Html.LabelFor(m => m.DocumentTitle, new { @class = "form-label" })
-                    <div id="standardTitleInput">
-                        @Html.TextBoxFor(m => m.DocumentTitle, new { @class = "form-control" })
-                    </div>
-                    <div id="prescriptionTitleSelect" style="display:none; position: relative;">
-                        <select id="prescriptionTitle" class="form-control">
-                            <option></option>
-                            @foreach (var drug in Model.DrugsList)
-                            {
-                                <option value="@drug.Value">@drug.Text</option>
-                            }
-                        </select>
-                    </div>
-                    @Html.ValidationMessageFor(m => m.DocumentTitle, "", new { @class = "text-danger" })
-                </div>
-
+                </select>
+            </div>
+            @Html.ValidationMessageFor(m => m.DocumentTitle, "", new { @class = "text-danger" })
+        </div>
+                <!-- All the files have content that can be added via text -->
                 <div class="form-group mb-3">
                     @Html.LabelFor(m => m.Content, new { @class = "form-label" })
                     @Html.TextAreaFor(m => m.Content, new { @class = "form-control", rows = "10", id = "documentContent" })
@@ -191,7 +198,7 @@
 
     <script>
         $(document).ready(function () {
-            // Initialize Select2
+            // Initialize Select2 for prescriptions
             $('#prescriptionTitle').select2({
                 placeholder: "Search for a drug...",
                 allowClear: true,
@@ -205,7 +212,7 @@
             // File upload form handling
             $('#uploadForm').on('submit', function (e) {
                 e.preventDefault();
-
+                // Check that file is actually selected
                 var fileInput = $('#fileUpload')[0];
                 if (!fileInput.files.length) {
                     showAlert('danger', 'Please select a file to upload');
@@ -255,7 +262,7 @@
                     if (!$('#uploadTitle').val()) {
                         $('#uploadTitle').val(file.name.split('.')[0]);
                     }
-
+                    // Special excpetions for images
                     if (file.type.startsWith('image/')) {
                         var reader = new FileReader();
                         reader.onload = function (e) {
@@ -272,6 +279,7 @@
             // Document type change handler
             $('#documentType').change(function () {
                 var docType = $(this).val();
+                // Shows drug suggestions if select prescription field
                 if (docType === 'Prescription') {
                     $('#standardTitleInput').hide();
                     $('#prescriptionTitleSelect').show();
@@ -293,7 +301,7 @@
                     month: '2-digit',
                     day: '2-digit'
                 }).replace(/\//g, '-');
-
+                // Specific name for the prescription that will likely not be the same
                 var prescriptionTitle = 'Prescription for ' + selectedDrug + ' (' + formattedDate + ')';
                 $('#DocumentTitle').val(prescriptionTitle);
             });
@@ -308,7 +316,7 @@
                     var text = $(this).val();
                     var words = text.split(/\s+/);
                     var lastWord = words[words.length - 1];
-
+                    // Begins providing suggestions for the drug names
                     if (lastWord.length > 2) {
                         typingTimer = setTimeout(function () {
                             getDrugSuggestions(lastWord);
@@ -319,7 +327,7 @@
                 }
             });
 
-            // Handle suggestion item clicks
+            // Handle suggestion item clicks when options begin to appear
             $(document).on('click', '.suggestion-item', function () {
                 var text = $('#documentContent').val();
                 var words = text.split(/\s+/);
@@ -329,7 +337,7 @@
                 $('#drugSuggestions').addClass('d-none');
             });
 
-            // Helper functions
+            // Helper functions to show alert when closing
             function showAlert(type, message) {
                 var alertHtml = `
                         <div class="alert alert-${type} alert-dismissible fade show" role="alert">
@@ -340,6 +348,7 @@
                 $('#alertPlaceholder').html(alertHtml);
             }
 
+            // Method will determine the size of the file
             function formatFileSize(bytes) {
                 if (bytes === 0) return '0 Bytes';
                 const k = 1024;
@@ -348,6 +357,7 @@
                 return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
             }
 
+            // Begins displaying all the options based on what has been entered by user
             function getDrugSuggestions(term) {
                 $.get('/Document/GetDrugSuggestions', { term: term }, function (data) {
                     if (data && data.length > 0) {

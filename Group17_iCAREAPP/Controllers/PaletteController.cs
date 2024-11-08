@@ -11,6 +11,7 @@ namespace Group17_iCAREAPP.Controllers
     public class PaletteController : Controller
     {
         private readonly Group17_iCAREDBEntities _context;
+        // Only allows 12 items per page for the card view
         private const int ItemsPerPage = 12;
 
         public PaletteController()
@@ -18,6 +19,7 @@ namespace Group17_iCAREAPP.Controllers
             _context = new Group17_iCAREDBEntities();
         }
 
+        // Index allows for many different ways to search through the documents
         public ActionResult Index(string searchQuery = "", string patientSearchQuery = "",
             string sortBy = "date", string filterBy = "all", int page = 1,
             string viewMode = "grid", bool showOnlyMyPatients = false)
@@ -39,7 +41,7 @@ namespace Group17_iCAREAPP.Controllers
             var query = _context.DocumentMetadata
                 .Include(d => d.PatientRecord)
                 .Include(d => d.iCAREWorker.iCAREUser)
-                .AsQueryable();
+                .AsQueryable(); // All files in the system
 
             // Apply document name search filter
             if (!string.IsNullOrEmpty(searchQuery))
@@ -83,19 +85,19 @@ namespace Group17_iCAREAPP.Controllers
                     break;
             }
 
-            // Calculate pagination
+            // Calculate pages to easily move through documents
             int totalItems = query.Count();
             int totalPages = Math.Max(1, (int)Math.Ceiling(totalItems / (double)ItemsPerPage));
             page = Math.Max(1, Math.Min(page, totalPages));
 
-            // Calculate skip and take values
+            // Calculate how many documents to skip
             int skipAmount = (page - 1) * ItemsPerPage;
             var documents = query
                 .Skip(skipAmount)
                 .Take(ItemsPerPage)
                 .ToList();
 
-            // Create view model
+            // Create view model to make the view easier to manage
             var viewModel = new PaletteViewModel
             {
                 Documents = documents,

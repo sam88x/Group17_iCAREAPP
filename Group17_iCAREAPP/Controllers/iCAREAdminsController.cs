@@ -120,8 +120,6 @@ namespace Group17_iCAREAPP.Controllers
             }
         }
 
-        // Other actions remain the same but should be updated with similar error handling
-
         protected override void Dispose(bool disposing)
         {
             if (disposing && db != null)

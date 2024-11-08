@@ -17,27 +17,31 @@ namespace Group17_iCAREAPP.Controllers
     {
         private readonly Group17_iCAREDBEntities db = new Group17_iCAREDBEntities();
 
-        // In DocumentController.cs
+        // Creating a new document
         public ActionResult Create(string patientId)
         {
             try
             {
+                // Look to identify the user's name who is currently logged in as the worker
                 var currentUser = User.Identity.Name;
                 var worker = db.iCAREWorker
                     .Include("iCAREUser")
                     .Include("UserRole")
                     .FirstOrDefault(w => w.iCAREUser.UserPassword.userName == currentUser);
 
+                // Check on if the worker is found in the database
                 if (worker == null)
                 {
                     TempData["Error"] = "Worker profile not found.";
                     return RedirectToAction("Index", "Home");
                 }
 
+                // Looks for the patient id of the patient of interest
                 var patient = db.PatientRecord
                     .Include("iCAREWorker")
                     .FirstOrDefault(p => p.ID == patientId);
 
+                // Checks that the patient exists
                 if (patient == null)
                 {
                     TempData["Error"] = "Patient not found.";
@@ -54,16 +58,18 @@ namespace Group17_iCAREAPP.Controllers
                     })
                     .ToList();
 
+                // Stores all the infromation about the document for the view
                 var viewModel = new CreateDocumentViewModel
                 {
                     PatientID = patientId,
                     PatientName = patient.name,
                     TreatmentArea = patient.treatmentArea,
                     BedID = patient.bedID,
-                    IsDoctor = worker.UserRole.ID == "DR001",
-                    DrugsList = drugs  // Add this to your ViewModel
+                    IsDoctor = worker.UserRole.ID == "DR001", // Checks the role and whether or not they are doctors
+                    DrugsList = drugs  // Full list of drugs in database
                 };
 
+                // Used for debugging
                 System.Diagnostics.Debug.WriteLine($"Number of drugs loaded: {drugs.Count}");
                 foreach (var drug in drugs.Take(5))
                 {
@@ -74,6 +80,7 @@ namespace Group17_iCAREAPP.Controllers
             }
             catch (Exception ex)
             {
+                // If the document form can't be created, redirect to home
                 TempData["Error"] = "Error loading document creation form.";
                 return RedirectToAction("Index", "Home");
             }
@@ -90,6 +97,7 @@ namespace Group17_iCAREAPP.Controllers
 
             try
             {
+                // Finds the worker profile
                 var currentUser = User.Identity.Name;
                 var worker = db.iCAREWorker
                     .Include("iCAREUser")
@@ -102,7 +110,8 @@ namespace Group17_iCAREAPP.Controllers
                     return RedirectToAction("Index", "Home");
                 }
 
-                // Check if nurse is trying to create a prescription
+                // Check if nurse is trying to create a prescription, should not be needed
+                // View solves this issue
                 if (worker.UserRole.ID != "DR001" && model.DocumentType == "Prescription")
                 {
                     ModelState.AddModelError("DocumentType", "Only doctors can create prescriptions.");
@@ -112,47 +121,52 @@ namespace Group17_iCAREAPP.Controllers
                 // Create document metadata
                 var docMeta = new DocumentMetadata
                 {
-                    docID = Guid.NewGuid().ToString(),
+                    docID = Guid.NewGuid().ToString(), // Creates a unique identifier
                     docName = model.DocumentTitle,
                     dateOfCreation = DateTime.Now,
-                    version = 1,
+                    version = 1, // Document version always starts at 1
                     userID = worker.ID,
                     patientID = model.PatientID
                 };
 
+                // Checks if the document being created is an image type
                 if (model.DocumentType == "Image" && model.ImageFile != null)
                 {
-                    // Generate PDF from image
+                    // Generate PDF
                     var fileName = $"Doc_{docMeta.docID}_v{docMeta.version}.pdf";
+                    // Stores all documents in the "~/App_Data/Documents" folder
                     var filePath = Path.Combine(Server.MapPath("~/App_Data/Documents"), fileName);
 
                     using (var doc = new Document())
                     {
+                        // Creating a new PDF
                         PdfWriter.GetInstance(doc, new FileStream(filePath, FileMode.Create));
                         doc.Open();
 
-                        // Add metadata
+                        // Add metadata from above
                         doc.AddAuthor(worker.iCAREUser.name);
                         doc.AddCreationDate();
                         doc.AddTitle(docMeta.docName);
                         doc.AddSubject("Image Document");
 
-                        // Add header (reuse your existing header formatting)
+                        // Add header to the document
                         var titleFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 16);
                         var headerFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 12);
                         var contentFont = FontFactory.GetFont(FontFactory.HELVETICA, 12);
 
+                        // Adds information to header about the document metadata
                         doc.Add(new Paragraph(docMeta.docName, titleFont));
                         doc.Add(new Paragraph($"Date: {DateTime.Now:yyyy-MM-dd HH:mm:ss}", contentFont));
                         doc.Add(new Paragraph($"Author: {worker.iCAREUser.name} ({worker.profession})", contentFont));
                         doc.Add(new Paragraph($"Patient: {model.PatientName} (ID: {model.PatientID})", contentFont));
 
+                        // Include treatment area if present
                         if (!string.IsNullOrEmpty(model.TreatmentArea))
                         {
                             doc.Add(new Paragraph($"Treatment Area: {model.TreatmentArea}", contentFont));
                         }
 
-                        doc.Add(new Paragraph(new string('_', 90)));
+                        doc.Add(new Paragraph(new string('_', 75)));
                         doc.Add(new Paragraph("\n"));
 
                         // Add the image
@@ -178,28 +192,34 @@ namespace Group17_iCAREAPP.Controllers
                 {
                     // Generate normal PDF document
                     var fileName = $"Doc_{docMeta.docID}_v{docMeta.version}.pdf";
+                    // Saved in same location as the images
                     var filePath = Path.Combine(Server.MapPath("~/App_Data/Documents"), fileName);
+                    // Generates PDF with that information
                     GeneratePDF(model, worker, docMeta, filePath);
                 }
 
                 db.DocumentMetadata.Add(docMeta);
                 db.SaveChanges();
 
+                // Success message
                 TempData["Success"] = "Document created successfully.";
                 return RedirectToAction("Details", "PatientRecord", new { id = model.PatientID });
             }
             catch (Exception ex)
             {
+                // All errors result in this message
                 TempData["Error"] = "Error creating document: " + ex.Message;
                 return View(model);
             }
         }
 
         [HttpGet]
+        // Displays information about the document
         public ActionResult Details(string id)
         {
             try
             {
+                // Finds the document associated with worker, patient, and version
                 var document = db.DocumentMetadata
                     .Include("iCAREWorker.iCAREUser")
                     .Include("PatientRecord")
@@ -208,23 +228,25 @@ namespace Group17_iCAREAPP.Controllers
 
                 if (document == null)
                 {
-                    System.Diagnostics.Debug.WriteLine($"Document not found for id: {id}");
+                    //System.Diagnostics.Debug.WriteLine($"Document not found for id: {id}");
+                    // Error if the document can't be found
                     TempData["Error"] = "Document not found.";
                     return RedirectToAction("Index", "MyBoard");
                 }
 
-                System.Diagnostics.Debug.WriteLine($"Document found: {document.docName}");
+                //System.Diagnostics.Debug.WriteLine($"Document found: {document.docName}");
                 return View(document);
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error in Details: {ex.Message}");
+                //System.Diagnostics.Debug.WriteLine($"Error in Details: {ex.Message}");
                 TempData["Error"] = "Error loading document details.";
                 return RedirectToAction("Index", "MyBoard");
             }
         }
 
         [HttpGet]
+        // Method helps with drug dictionary implementation
         public JsonResult GetDrugSuggestions(string term)
         {
             try
@@ -236,15 +258,18 @@ namespace Group17_iCAREAPP.Controllers
 
                 if (worker?.UserRole.ID != "DR001")
                 {
+                    // Returns empty object if not a doctor
                     return Json(new object[] { }, JsonRequestBehavior.AllowGet);
                 }
 
+                // Suggestions contains all the drugs' names in a list
                 var suggestions = db.DrugsDictionary
                     .Where(d => d.name.Contains(term))
                     .Select(d => new { d.name })
                     .Take(5)
                     .ToList();
 
+                // Doctors can see full list of drugs
                 return Json(suggestions, JsonRequestBehavior.AllowGet);
             }
             catch
@@ -253,8 +278,10 @@ namespace Group17_iCAREAPP.Controllers
             }
         }
 
+        // Method generates a PDF for text documents
         private string GeneratePDF(object model, iCAREWorker worker, DocumentMetadata doc123, string filePath)
         {
+            // Local variables to aid in implementation
             string content;
             string title;
             string documentType;
@@ -264,6 +291,7 @@ namespace Group17_iCAREAPP.Controllers
             bool isEditMode = false;
 
             // Extract values based on model type
+            // Either a create model or an edit model
             if (model is CreateDocumentViewModel createModel)
             {
                 content = createModel.Content;
@@ -286,11 +314,14 @@ namespace Group17_iCAREAPP.Controllers
             }
             else
             {
+                // If the model is neither type, throw error
                 throw new ArgumentException("Invalid model type");
             }
 
             // Ensure directory exists
+            // Should always be the same path
             var directory = Path.GetDirectoryName(filePath);
+            // Creates directory on first call
             if (!Directory.Exists(directory))
             {
                 Directory.CreateDirectory(directory);
@@ -300,6 +331,7 @@ namespace Group17_iCAREAPP.Controllers
             {
                 try
                 {
+                    // Opens PDF to begin writing
                     PdfWriter.GetInstance(doc, new FileStream(filePath, FileMode.Create));
                     doc.Open();
 
@@ -309,6 +341,7 @@ namespace Group17_iCAREAPP.Controllers
                     doc.AddTitle(title);
                     doc.AddSubject(documentType);
 
+                    // Sets consistent font and size
                     var titleFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 16);
                     var headerFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 12);
                     var contentFont = FontFactory.GetFont(FontFactory.HELVETICA, 12);
@@ -347,6 +380,7 @@ namespace Group17_iCAREAPP.Controllers
                         doc.Add(new Paragraph("\n"));
                     }
 
+                    // Special creation instructions if the document is a prescription
                     if (documentType == "Prescription")
                     {
                         var warning = new Paragraph("PRESCRIPTION DOCUMENT", headerFont);
@@ -358,6 +392,7 @@ namespace Group17_iCAREAPP.Controllers
                     // Add main content
                     doc.Add(new Paragraph(content, contentFont));
 
+                    // Indicates the doctor that writes the prescription
                     if (documentType == "Prescription")
                     {
                         doc.Add(new Paragraph("\n"));
@@ -387,15 +422,19 @@ namespace Group17_iCAREAPP.Controllers
 
             return Path.GetFileName(filePath);
         }
+
+        // Enables user to look at the document
         public ActionResult View(string id)
         {
             try
             {
+                // Finds the document id that has the patient and worker
                 var document = db.DocumentMetadata
                     .Include("iCAREWorker.iCAREUser")
                     .Include("PatientRecord")
                     .FirstOrDefault(d => d.docID == id);
 
+                // Check to see if the document exists
                 if (document == null)
                 {
                     TempData["Error"] = "Document not found.";
@@ -415,6 +454,7 @@ namespace Group17_iCAREAPP.Controllers
                     fileName = $"Doc_{document.docID}_v{version}.pdf";
                 }
 
+                // All files directed to this path, so that is where we look
                 var filePath = Path.Combine(Server.MapPath("~/App_Data/Documents"), fileName);
 
                 if (!System.IO.File.Exists(filePath))
@@ -423,7 +463,7 @@ namespace Group17_iCAREAPP.Controllers
                     return RedirectToAction("Index", "MyBoard");
                 }
 
-                // Return the PDF file with inline content disposition
+                // Return the PDF file
                 return File(filePath, "application/pdf");
             }
             catch (Exception ex)
@@ -433,10 +473,12 @@ namespace Group17_iCAREAPP.Controllers
             }
         }
 
+        // Allows user to edit text documents
         public ActionResult Edit(string id)
         {
             try
             {
+                // Looking for document
                 var document = db.DocumentMetadata
                     .Include("iCAREWorker.iCAREUser")
                     .Include("PatientRecord")
@@ -454,6 +496,7 @@ namespace Group17_iCAREAPP.Controllers
                 var filePath = Path.Combine(Server.MapPath("~/App_Data/Documents"), fileName);
 
                 string content = "";
+                // First check that the file exists
                 if (System.IO.File.Exists(filePath))
                 {
                     using (var reader = new iTextSharp.text.pdf.PdfReader(filePath))
@@ -461,6 +504,7 @@ namespace Group17_iCAREAPP.Controllers
                         StringBuilder contentBuilder = new StringBuilder();
                         for (int page = 1; page <= reader.NumberOfPages; page++)
                         {
+                            // Checks all the text on all possible pages and parses it to a StringBuilder type
                             contentBuilder.Append(iTextSharp.text.pdf.parser.PdfTextExtractor.GetTextFromPage(reader, page));
                             if (page < reader.NumberOfPages)
                             {
@@ -478,6 +522,7 @@ namespace Group17_iCAREAPP.Controllers
                     System.Diagnostics.Debug.WriteLine(content);
                 }
 
+                // Creates model for documents that are to be edited
                 var viewModel = new EditDocumentViewModel
                 {
                     DocumentId = document.docID,
@@ -501,6 +546,7 @@ namespace Group17_iCAREAPP.Controllers
             }
         }
 
+        // Method pulls out the information from the PDF, omitting the header
         private string ExtractMainContent(string fullContent)
         {
             try
@@ -515,6 +561,7 @@ namespace Group17_iCAREAPP.Controllers
                 int firstSeparatorIndex = -1;
                 int lastSeparatorIndex = -1;
 
+                // Looks for space between the lines that separate content from header
                 for (int i = 0; i < lines.Count; i++)
                 {
                     if (lines[i].Count(c => c == '_') >= 75)
@@ -526,7 +573,7 @@ namespace Group17_iCAREAPP.Controllers
                     }
                 }
 
-                // If we found both separators
+                // If found both separators
                 if (firstSeparatorIndex != -1 && lastSeparatorIndex != -1 && lastSeparatorIndex > firstSeparatorIndex)
                 {
                     // Get content between separators, excluding the separators themselves
@@ -544,7 +591,7 @@ namespace Group17_iCAREAPP.Controllers
                     return string.Join("\n", contentLines).Trim();
                 }
 
-                // Fallback: try to find content after header information
+                // Can also look for the index at the end of the header
                 var headerEndIndex = lines.FindIndex(l =>
                     l.StartsWith("Treatment Area:") ||
                     l.StartsWith("Patient:"));
@@ -569,11 +616,13 @@ namespace Group17_iCAREAPP.Controllers
             }
         }
 
+        // Method cleans the file content to be edited
         private string CleanContent(string content)
         {
             if (string.IsNullOrWhiteSpace(content))
                 return string.Empty;
 
+            // Finds all the lines that are not part of the header
             var lines = content.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
                               .Select(l => l.Trim())
                               .Where(l => !string.IsNullOrWhiteSpace(l))
@@ -600,8 +649,10 @@ namespace Group17_iCAREAPP.Controllers
             return string.Join("\n", lines).Trim();
         }
 
+        // Helper method to return the document type
         private string DetermineDocumentType(string title, string content)
         {
+            // Document that is typed is either a prescription or a general note
             if (title.IndexOf("Prescription", StringComparison.OrdinalIgnoreCase) >= 0 ||
                 content.IndexOf("PRESCRIPTION DOCUMENT", StringComparison.OrdinalIgnoreCase) >= 0 ||
                 content.IndexOf("Prescribed by Dr.", StringComparison.OrdinalIgnoreCase) >= 0)
@@ -624,6 +675,7 @@ namespace Group17_iCAREAPP.Controllers
             {
                 try
                 {
+                    // Collect the worker information
                     var currentUser = User.Identity.Name;
                     var worker = db.iCAREWorker
                         .Include("iCAREUser")
@@ -636,6 +688,7 @@ namespace Group17_iCAREAPP.Controllers
                         return RedirectToAction("Index", "Home");
                     }
 
+                    // Collects the document information
                     var document = db.DocumentMetadata
                         .Include("iCAREWorker.iCAREUser")
                         .FirstOrDefault(d => d.docID == model.DocumentId);
@@ -682,6 +735,7 @@ namespace Group17_iCAREAPP.Controllers
                 }
                 catch (Exception ex)
                 {
+                    // Returns to previous verison if any errors
                     transaction.Rollback();
                     TempData["Error"] = "Error updating document: " + ex.Message;
                     return View(model);
@@ -689,6 +743,7 @@ namespace Group17_iCAREAPP.Controllers
             }
         }
 
+        // Method cleans up the content in the PDF to be edited
         private string CleanExtractedContent(string content)
         {
             if (string.IsNullOrWhiteSpace(content))
@@ -716,6 +771,7 @@ namespace Group17_iCAREAPP.Controllers
             return content.Trim();
         }
 
+        // Helper method returns the type of the document
         private string GetDocumentType(string content)
         {
             // Simple logic to determine document type based on content
@@ -725,62 +781,63 @@ namespace Group17_iCAREAPP.Controllers
         }
 
         [HttpPost]
+        //Method works to easily upload files to pdfs
         public ActionResult UploadFile()
         {
             try
             {
-                // Debug logging
-                System.Diagnostics.Debug.WriteLine("Starting file upload...");
+                // System.Diagnostics.Debug.WriteLine("Starting file upload...");
 
                 var file = Request.Files["file"];
                 var patientId = Request["PatientID"];
                 var documentTitle = Request["documentTitle"];
 
                 // Log received data
-                System.Diagnostics.Debug.WriteLine($"PatientID: {patientId}");
-                System.Diagnostics.Debug.WriteLine($"Document Title: {documentTitle}");
-                System.Diagnostics.Debug.WriteLine($"File present: {(file != null)}");
+                // System.Diagnostics.Debug.WriteLine($"PatientID: {patientId}");
+                // System.Diagnostics.Debug.WriteLine($"Document Title: {documentTitle}");
+                // System.Diagnostics.Debug.WriteLine($"File present: {(file != null)}");
                 if (file != null)
                 {
-                    System.Diagnostics.Debug.WriteLine($"File size: {file.ContentLength}");
-                    System.Diagnostics.Debug.WriteLine($"File type: {file.ContentType}");
+                    // System.Diagnostics.Debug.WriteLine($"File size: {file.ContentLength}");
+                    // System.Diagnostics.Debug.WriteLine($"File type: {file.ContentType}");
                 }
 
+                // If file does not exist or is of 0 length
                 if (file == null || file.ContentLength == 0)
                 {
                     return Json(new { success = false, message = "No file was selected." });
                 }
-
+                // If the patient information is not there
                 if (string.IsNullOrEmpty(patientId))
                 {
                     return Json(new { success = false, message = "Patient ID is required." });
                 }
-
+                // If the title of the document is not included
                 if (string.IsNullOrEmpty(documentTitle))
                 {
                     documentTitle = Path.GetFileNameWithoutExtension(file.FileName);
                 }
-
+                // Special title for uploaded documents
                 documentTitle = "Uploaded: " + documentTitle;
 
                 var currentUser = User.Identity.Name;
-                System.Diagnostics.Debug.WriteLine($"Current User: {currentUser}");
+                //System.Diagnostics.Debug.WriteLine($"Current User: {currentUser}");
 
                 var worker = db.iCAREWorker
                     .Include("iCAREUser")
                     .FirstOrDefault(w => w.iCAREUser.UserPassword.userName == currentUser);
-
+                // If the worker is not found in the database
                 if (worker == null)
                 {
                     return Json(new { success = false, message = "Worker profile not found." });
                 }
 
-                System.Diagnostics.Debug.WriteLine($"Worker found: {worker.ID}");
+                //System.Diagnostics.Debug.WriteLine($"Worker found: {worker.ID}");
 
                 // Create document metadata
                 var docMeta = new DocumentMetadata
                 {
-                    docID = Guid.NewGuid().ToString(),
+                    docID = Guid.NewGuid().ToString(), // Specific id for document
                     docName = documentTitle,
                     dateOfCreation = DateTime.Now,
                     version = 1,
@@ -792,27 +849,28 @@ namespace Group17_iCAREAPP.Controllers
                 var documentsPath = Server.MapPath("~/App_Data/Documents");
                 if (!Directory.Exists(documentsPath))
                 {
-                    System.Diagnostics.Debug.WriteLine($"Creating directory: {documentsPath}");
+                    // System.Diagnostics.Debug.WriteLine($"Creating directory: {documentsPath}");
                     Directory.CreateDirectory(documentsPath);
                 }
 
                 var fileName = $"Doc_{docMeta.docID}.pdf";
                 var filePath = Path.Combine(documentsPath, fileName);
 
-                System.Diagnostics.Debug.WriteLine($"Saving file to: {filePath}");
+                // System.Diagnostics.Debug.WriteLine($"Saving file to: {filePath}");
 
                 try
                 {
                     if (file.ContentType.StartsWith("image/"))
                     {
-                        System.Diagnostics.Debug.WriteLine("Converting image to PDF...");
+                        // System.Diagnostics.Debug.WriteLine("Converting image to PDF...");
                         using (var doc = new Document())
                         {
+                            // Opens up a new PDF to be written to
                             PdfWriter.GetInstance(doc, new FileStream(filePath, FileMode.Create));
                             doc.Open();
 
                             var image = iTextSharp.text.Image.GetInstance(file.InputStream);
-
+                            // Scales the image to the PDF
                             float maxWidth = doc.PageSize.Width - doc.LeftMargin - doc.RightMargin;
                             float maxHeight = doc.PageSize.Height - doc.TopMargin - doc.BottomMargin;
                             if (image.Width > maxWidth || image.Height > maxHeight)
@@ -820,7 +878,7 @@ namespace Group17_iCAREAPP.Controllers
                                 float scale = Math.Min(maxWidth / image.Width, maxHeight / image.Height);
                                 image.ScalePercent(scale * 100);
                             }
-
+                            // Aligns the image in the center of the document
                             image.Alignment = Element.ALIGN_CENTER;
                             doc.Add(image);
                             doc.Close();
@@ -828,7 +886,7 @@ namespace Group17_iCAREAPP.Controllers
                     }
                     else if (file.ContentType.Equals("application/pdf"))
                     {
-                        System.Diagnostics.Debug.WriteLine("Saving PDF directly...");
+                        // System.Diagnostics.Debug.WriteLine("Saving PDF directly...");
                         file.SaveAs(filePath);
                     }
                     else
@@ -836,11 +894,12 @@ namespace Group17_iCAREAPP.Controllers
                         return Json(new { success = false, message = $"Unsupported file type: {file.ContentType}" });
                     }
 
-                    System.Diagnostics.Debug.WriteLine("Saving to database...");
+                    // System.Diagnostics.Debug.WriteLine("Saving to database...");
                     db.DocumentMetadata.Add(docMeta);
                     db.SaveChanges();
 
-                    System.Diagnostics.Debug.WriteLine("Upload complete!");
+                    // System.Diagnostics.Debug.WriteLine("Upload complete!");
+                    // If successful, sends it back to patient details
                     return Json(new
                     {
                         success = true,
@@ -849,15 +908,15 @@ namespace Group17_iCAREAPP.Controllers
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"Error saving file: {ex.Message}");
-                    System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
+                    // System.Diagnostics.Debug.WriteLine($"Error saving file: {ex.Message}");
+                    // System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
                     return Json(new { success = false, message = $"Error saving file: {ex.Message}" });
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Upload error: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
+                // System.Diagnostics.Debug.WriteLine($"Upload error: {ex.Message}");
+                // System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
                 return Json(new { success = false, message = $"Upload error: {ex.Message}" });
             }
         }

@@ -6,6 +6,7 @@
     <div class="palette-header">
         @using (Html.BeginForm("Index", "Palette", FormMethod.Get, new { id = "searchForm" }))
         {
+            <!-- Search Option for Document name-->
             <div class="row mb-3">
                 <div class="col-md-3">
                     <div class="form-group">
@@ -13,12 +14,14 @@
                         @Html.TextBoxFor(m => m.SearchQuery, new { @class = "form-control", placeholder = "Search documents..." })
                     </div>
                 </div>
+                <!-- Search Option for Patient name -->
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="PatientSearchQuery" class="form-label">Enter Patient</label>
                         @Html.TextBoxFor(m => m.PatientSearchQuery, new { @class = "form-control", placeholder = "Search by patient name..." })
-                    </div>      
+                    </div>
                 </div>
+                <!-- Dropdown for selecting how you want files to be sorted -->
                 <div class="col-md-2">
                     <div class="form-group">
                         <label for="SortBy" class="form-label">Sort By</label>
@@ -34,12 +37,14 @@
                     </div>
 
                 </div>
+                <!-- Allows the user to view the documents of patients assigned to them -->
                 <div class="col-md-2">
                     <div class="form-check">
                         @Html.CheckBoxFor(m => m.ShowOnlyMyPatients, new { @class = "form-check-input" })
                         <label class="form-check-label">My Patients Only</label>
                     </div>
                 </div>
+                <!-- Two viewing modes: grid and table which can be switched with a button -->
                 <div class="col-md-2">
                     <div class="btn-group" role="group">
                         <button type="button" class="btn @(Model.ViewMode == "grid" ? "btn-primary" : "btn-outline-primary")"
@@ -54,11 +59,12 @@
                     @Html.HiddenFor(m => m.ViewMode)
 
                 </div>
+                <!-- Allows the search to commence -->
                 <button type="submit" class="btn btn-primary ms-2">Search</button>
             </div>
         }
     </div>
-
+    <!-- Message displayed if there are no files available -->
     @if (!Model.Documents.Any())
     {
         <div class="alert alert-info">
@@ -73,10 +79,12 @@
             <div class="document-grid">
                 @foreach (var doc in Model.Documents)
                 {
+                    <!-- Creates a tile for each file if in grid mode -->
                     <div class="document-tile">
                         <div class="doc-icon">
                             <i class="fas fa-file"></i>
                         </div>
+                        <!-- Tile contains various information about the document -->
                         <div class="doc-info">
                             <h4>@doc.docName</h4>
                             <p>Patient: @doc.PatientRecord.name</p>
@@ -99,6 +107,7 @@
         }
         else
         {
+            <!-- Other view model is a table -->
             <div class="table-responsive">
                 <table id="documentsTable" class="table table-hover">
                     <thead>
@@ -115,6 +124,7 @@
                         @foreach (var doc in Model.Documents)
                         {
                             <tr>
+                                <!-- Lots of data to view in the table -->
                                 <td>@doc.docName</td>
                                 <td>@doc.PatientRecord.name</td>
                                 <td>@doc.iCAREWorker.iCAREUser.name</td>
@@ -123,6 +133,7 @@
                                     <span class="badge bg-secondary">v@(doc.version)</span>
                                 </td>
                                 <td>
+                                    <!-- Able to view or edit document from the table -->
                                     <div class="btn-group">
                                         <a href="@Url.Action("Details", "Document", new { id = doc.docID })"
                                            class="btn btn-sm btn-info" title="View Details">
@@ -142,44 +153,48 @@
         }
     }
 
+    <!-- Allows for there to be many pages of documents to potentially be displayed -->
     @if (Model.TotalPages > 1)
     {
-        <div class="pagination-controls mt-3">
-            @if (Model.CurrentPage > 1)
-            {
-                @Html.ActionLink("Previous", "Index", new
-                {
-                    page = Model.CurrentPage - 1,
-                    searchQuery = Model.SearchQuery,
-                    patientSearchQuery = Model.PatientSearchQuery,
-                    sortBy = Model.SortBy,
-                    viewMode = Model.ViewMode,
-                    showOnlyMyPatients = Model.ShowOnlyMyPatients
-                }, new { @class = "btn btn-outline-primary" })
-            }
+        <!-- Previous button if not on first page -->
+<div class="pagination-controls mt-3">
+    @if (Model.CurrentPage > 1)
+    {
+        @Html.ActionLink("Previous", "Index", new
+        {
+            page = Model.CurrentPage - 1,
+            searchQuery = Model.SearchQuery,
+            patientSearchQuery = Model.PatientSearchQuery,
+            sortBy = Model.SortBy,
+            viewMode = Model.ViewMode,
+            showOnlyMyPatients = Model.ShowOnlyMyPatients
+        }, new { @class = "btn btn-outline-primary" })
+    }
 
-            <span class="mx-3">
-                Page @Model.CurrentPage of @Model.TotalPages
-            </span>
+    <span class="mx-3">
+        Page @Model.CurrentPage of @Model.TotalPages
+    </span>
 
-            @if (Model.CurrentPage < Model.TotalPages)
-            {
-                @Html.ActionLink("Next", "Index", new
-                {
-                    page = Model.CurrentPage + 1,
-                    searchQuery = Model.SearchQuery,
-                    patientSearchQuery = Model.PatientSearchQuery,
-                    sortBy = Model.SortBy,
-                    viewMode = Model.ViewMode,
-                    showOnlyMyPatients = Model.ShowOnlyMyPatients
-                }, new { @class = "btn btn-outline-primary" })
-            }
-        </div>
+    <!-- Next button if not on last page -->
+    @if (Model.CurrentPage < Model.TotalPages)
+    {
+        @Html.ActionLink("Next", "Index", new
+        {
+            page = Model.CurrentPage + 1,
+            searchQuery = Model.SearchQuery,
+            patientSearchQuery = Model.PatientSearchQuery,
+            sortBy = Model.SortBy,
+            viewMode = Model.ViewMode,
+            showOnlyMyPatients = Model.ShowOnlyMyPatients
+        }, new { @class = "btn btn-outline-primary" })
+    }
+</div>
     }
 </div>
 
 @section Scripts {
     <script>
+        // Easy display of the table
         $(document).ready(function() {
             if ('@Model.ViewMode' === 'table') {
                 $('#documentsTable').DataTable({

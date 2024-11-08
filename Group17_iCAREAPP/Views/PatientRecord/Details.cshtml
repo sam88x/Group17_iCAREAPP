@@ -22,6 +22,12 @@
 
                         <dt class="col-sm-4">Blood Group</dt>
                         <dd class="col-sm-8">@(Model.bloodGroup ?? "Not specified")</dd>
+
+                        <dt class="col-sm-4">Height (cm)</dt>
+                        <dd class="col-sm-8">@(Model.height.HasValue ? Model.height.Value.ToString().Trim() : "Not measured")</dd>
+
+                        <dt class="col-sm-4">Weight (kg)</dt>
+                        <dd class="col-sm-8">@(Model.weight.HasValue ? Model.weight.Value.ToString().Trim() : "Not measured")</dd>
                     </dl>
                 </div>
                 <div class="col-md-6">

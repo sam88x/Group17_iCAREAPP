@@ -407,9 +407,6 @@
     <Content Include="Views\PatientRecord\Edit.cshtml" />
     <Content Include="Views\PatientRecord\Create.cshtml" />
     <Content Include="Views\Palette\Index.cshtml" />
-    <Content Include="Views\iCAREBoard\DisplayByGeoCode.cshtml" />
-    <Content Include="Views\iCAREBoard\Index.cshtml" />
-    <Content Include="Views\MyBoard\DisplayMyBoard.cshtml" />
     <Content Include="Views\MyBoard\Index.cshtml" />
     <Content Include="Views\Document\Create.cshtml" />
     <Content Include="Views\PatientRecord\Details.cshtml" />

@@ -28,11 +28,11 @@
 </style>
 
 <main>
-    <!-- Hero Section -->
+    <!-- Main Section that User sees when opening page-->
     <section class="hero-section text-center py-5 mb-4 text-white">
         <div class="container">
             <h1 class="display-4 fw-bold">Welcome to iCARE</h1>
-            <p class="lead mb-4">An integrated healthcare management system designed to streamline patient care and medical operations.</p>
+            <p class="lead mb-4">An integrated healthcare management system designed to streamline patient care and medical documentation.</p>
             @if (!Request.IsAuthenticated)
             {
                 <a href="@Url.Action("Login", "Account")" class="btn btn-light btn-lg">Login to System</a>
@@ -53,6 +53,7 @@
                         <h3 class="card-title h4">Medical Doctors</h3>
                         <p class="text-muted">Access and manage patient medical documentation</p>
                     </div>
+                    <!-- Once the doctor is logged in, there becomes an option to directly go to myboard -->
                     @if (User.IsInRole("Doctor"))
                     {
                         <div class="card-footer bg-transparent border-0">
@@ -74,6 +75,7 @@
                         <h3 class="card-title h4">Nursing Staff</h3>
                         <p class="text-muted">Record and update patient care documentation</p>
                     </div>
+                    <!-- Once the nurse is logged in, there becomes an option to directly go to myboard -->
                     @if (User.IsInRole("Nurse"))
                     {
                         <div class="card-footer bg-transparent border-0">
@@ -95,6 +97,7 @@
                         <h3 class="card-title h4">System Administrators</h3>
                         <p class="text-muted">Manage user access</p>
                     </div>
+                    <!-- Once the admin is logged in, there becomes an option to directly go to managing users -->
                     @if (User.IsInRole("Administrator"))
                     {
                         <div class="card-footer bg-transparent border-0">
@@ -109,6 +112,7 @@
     </section>
 
     <!-- System Status -->
+    <!-- This is all just decoration at this point and does not do anything -->
     <section class="container-fluid bg-light py-4">
         <div class="container">
             <div class="row text-center">

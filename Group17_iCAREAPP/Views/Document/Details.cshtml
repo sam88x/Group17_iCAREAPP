@@ -9,6 +9,7 @@
                 Patient: @Model.PatientRecord.name
             </p>
         </div>
+        <!-- Provides information about the document -->
         <div class="card-body">
             <div class="row mb-4">
                 <div class="col-md-6">
@@ -39,12 +40,12 @@
                     </dl>
                 </div>
             </div>
-
+            <!-- Allows for the user to press a button that will open the document -->
             <div class="text-center mb-4">
                 <a href="@Url.Action("View", new { id = Model.docID })" class="btn btn-primary" target="_blank">
                     <i class="fas fa-file-pdf me-2"></i>View Document
                 </a>
-                @* Only show edit button for non-uploaded documents *@
+                @* Only show edit button for non-uploaded documents or for prescriptions *@
                 @if (!Model.docName.StartsWith("Uploaded:") && !Model.docName.StartsWith("Prescription"))
                 {
                     <a href="@Url.Action("Edit", new { id = Model.docID })" class="btn btn-warning">
@@ -63,6 +64,7 @@
                 </div>
             }
 
+            <!-- Displays the modification history of the document -->
             @if (Model.ModificationHistory != null && Model.ModificationHistory.Any())
             {
                 <div class="card mt-4">
@@ -80,6 +82,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
+                                    <!-- Provides table with all the documents created for a given patient -->
                                     @foreach (var mod in Model.ModificationHistory.OrderByDescending(m => m.datOfModification))
                                     {
                                         <tr>
