@@ -1,4 +1,25 @@
-﻿using System;
+﻿/* /GeoCodes/ 
+ * 
+ * Index() :
+ * The first index page
+ * 
+ * Details(string id) :
+ * The detail page about geocode's id
+ * 
+ * AssignWholeArea(string id) : 
+ * Assign all patients in the geographical area to the current worker
+ * 
+ * Create(), GET
+ * Create([Bind(Include = "ID,description")] GeoCodes geoCodes), POST
+ * Edit(string id), GET
+ * Edit([Bind(Include = "ID,description")] GeoCodes geoCodes), POST
+ * Delete(string id), GET
+ * DeleteConfirmed(string id), POST
+ * They are auto-created, the project doesn't use them.
+ * 
+ */
+
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
@@ -17,6 +38,8 @@ namespace Group17_iCAREAPP.Controllers
         private Group17_iCAREDBEntities db = new Group17_iCAREDBEntities();
 
         // GET: GeoCodes
+        // It returns the view of the first index homepage about GeoCodes.
+        // return: Send geoCodes model to the view.
         public ActionResult Index()
         {
             var geoCodes = db.GeoCodes.Include(g => g.PatientRecord);
@@ -24,6 +47,9 @@ namespace Group17_iCAREAPP.Controllers
         }
 
         // GET: GeoCodes/Details/5
+        // It returns the view of the detail information about geocode's id.
+        // parameter: string id / geographical unit's id
+        // return: Send patientRecords model to the view.
         public ActionResult Details(string id)
         {
             if (id == null)
@@ -45,7 +71,8 @@ namespace Group17_iCAREAPP.Controllers
 
 
         // GET: TreatmentRecords/AssignWholeArea
-        // Takes the id of a geographic area and returns a view that allows the user to assign all patients in the area.
+        // parameter: string id / the id of a geographic area
+        // return:  a view that allows the user to assign all patients in the area
         public ActionResult AssignWholeArea(string id)
         {
             Debug.WriteLine("==========================================");
@@ -115,6 +142,7 @@ namespace Group17_iCAREAPP.Controllers
         }
 
         // GET: GeoCodes/Create
+        // auto-created.
         public ActionResult Create()
         {
             ViewBag.ID = new SelectList(db.PatientRecord, "ID", "name");
